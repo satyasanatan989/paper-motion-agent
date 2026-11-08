@@ -1,62 +1,103 @@
 {
-  "title": "How Maida Causes Acidity & Indigestion in Our Body",
-  "voice": "hi-IN-MadhurNeural (Energetic Hinglish)",
-  "total_duration": 62.6,
-  "sample_rate": 24000,
+  "title": "How Maida Causes Acidity & Indigestion in Our Body (Reference Style)",
+  "voice": "hi-IN-MadhurNeural (+12%)",
+  "total_duration": 79.96,
+  "sample_rate": 44100,
   "chapters": [
     {
       "id": 1,
       "title": "The 2-Hour Heartburn Trap",
       "badge": "🍕 CHAPTER 01 · THE 2-HOUR TRAP",
-      "text": "पिज़्ज़ा, समोसा या भटूरे खाते ही मज़ा तो बहुत आता है, लेकिन कुछ घंटों बाद सीने में जलन और heavy acidity क्यों होती है?",
+      "text": "कभी सोचा है? शनिवार की शाम जब आप गरमा-गरम पिज़्ज़ा, समोसा या भटूरे खाते हैं, तो मज़ा तो बहुत आता है... लेकिन ठीक दो घंटे बाद सीने में ऐसी भयानक acidity क्यों होती है?",
+      "keywords": [
+        "शनिवार",
+        "पिज़्ज़ा",
+        "समोसा",
+        "भटूरे",
+        "भयानक acidity"
+      ],
       "start": 0.0,
-      "end": 9.43,
-      "duration": 9.43
+      "end": 15.24,
+      "duration": 15.24
     },
     {
       "id": 2,
-      "title": "The Stripping Process",
+      "title": "Stripping the Grain",
       "badge": "🌾 CHAPTER 02 · STRIPPING THE GRAIN",
-      "text": "Whole wheat grain में तीन parts होते हैं: bran, germ और endosperm. लेकिन मैदा बनाते वक्त सारा fiber strip कर दिया जाता है।",
-      "start": 9.88,
-      "end": 20.39,
-      "duration": 10.51
+      "text": "खेल शुरू होता है गेहूं के दाने से। Whole wheat में bran, germ और endosperm होते हैं। लेकिन मैदा बनाते वक्त सारा fiber बेरहमी से strip कर दिया जाता है! बचता है सिर्फ refined starch.",
+      "keywords": [
+        "Whole wheat",
+        "bran",
+        "germ",
+        "endosperm",
+        "fiber",
+        "strip",
+        "refined starch"
+      ],
+      "start": 15.59,
+      "end": 31.24,
+      "duration": 15.65
     },
     {
       "id": 3,
       "title": "The Gut Glue Matrix",
       "badge": "🧪 CHAPTER 03 · THE GUT GLUE MATRIX",
-      "text": "पेट में जाते ही यह refined starch पानी के साथ मिलकर एक sticky glue बनाता है, जो stomach lining पर बुरी तरह चिपक जाता है।",
-      "start": 20.84,
-      "end": 30.3,
-      "duration": 9.46
+      "text": "पेट में जाते ही यह starch पानी से मिलकर एक sticky glue बनाता है — बिल्कुल वही लेई जिससे कागज़ चिपकाते हैं! यह आपकी stomach lining पर बुरी तरह चिपक जाता है।",
+      "keywords": [
+        "sticky glue",
+        "लेई",
+        "कागज़",
+        "stomach lining",
+        "चिपक जाता है"
+      ],
+      "start": 31.59,
+      "end": 44.16,
+      "duration": 12.58
     },
     {
       "id": 4,
       "title": "Hydrochloric Acid Surge",
-      "badge": "⚠️ CHAPTER 04 · ACID SURGE & REFLUX",
-      "text": "इस glue को तोड़ने के लिए पेट को extreme Hydrochloric Acid release करना पड़ता है, जो ऊपर आकर severe acidity और heartburn बनाता है।",
-      "start": 30.75,
-      "end": 41.21,
-      "duration": 10.46
+      "badge": "⚠️ CHAPTER 04 · ACID SURGE & HEARTBURN",
+      "text": "इस glue को तोड़ने के लिए पेट release करता है extreme Hydrochloric Acid, pH 1.5! यही corrosive acid जब ऊपर गले में आता है, तो होती है severe heartburn!",
+      "keywords": [
+        "extreme Hydrochloric Acid",
+        "pH 1.5",
+        "corrosive acid",
+        "severe heartburn"
+      ],
+      "start": 44.51,
+      "end": 57.71,
+      "duration": 13.2
     },
     {
       "id": 5,
       "title": "The 50-Hour Transit Clock",
-      "badge": "⏱️ CHAPTER 05 · TRANSIT TIME CLOCK",
-      "text": "Normal fiber twenty-four hours में digest हो जाता है, लेकिन मैदा fifty hours से भी ज़्यादा समय तक intestines में अटका रहता है।",
-      "start": 41.66,
-      "end": 51.17,
-      "duration": 9.5
+      "badge": "⏱️ CHAPTER 05 · THE 50-HOUR TRANSIT CLOCK",
+      "text": "Normal fiber twenty-four hours में digest हो जाता है, लेकिन मैदा आपकी आंतों में fifty hours से भी ज़्यादा समय तक फंसा रहता है — creating massive gut congestion.",
+      "keywords": [
+        "Normal fiber",
+        "twenty-four hours",
+        "fifty hours",
+        "gut congestion"
+      ],
+      "start": 58.06,
+      "end": 68.89,
+      "duration": 10.82
     },
     {
       "id": 6,
       "title": "The Final Verdict",
       "badge": "🛑 CHAPTER 06 · THE FINAL VERDICT",
-      "text": "तो अगली बार भटूरे खाने से पहले सोचना, यह स्वाद सिर्फ दस सेकंड जीभ का है, लेकिन अंदर यह आपके पेट का सबसे बड़ा दुश्मन है।",
-      "start": 51.62,
-      "end": 62.15,
-      "duration": 10.54
+      "text": "तो अगली बार भटूरे खाने से पहले याद रखना: यह स्वाद सिर्फ दस सेकंड जीभ का है, लेकिन अंदर यह आपके पेट का सबसे बड़ा दुश्मन है!",
+      "keywords": [
+        "दस सेकंड",
+        "जीभ",
+        "पेट का सबसे बड़ा दुश्मन",
+        "भटूरे"
+      ],
+      "start": 69.24,
+      "end": 79.61,
+      "duration": 10.37
     }
   ]
 }
