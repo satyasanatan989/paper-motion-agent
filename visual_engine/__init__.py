@@ -9,6 +9,7 @@ from .transitions import TransitionLibrary
 from .typography import KineticTypography
 from .scene_composer import DynamicSceneComposer
 from .food_science_library import FoodScienceVisuals, FOOD_CODE_THEME
+from .comfy_adapter import ComfyUIAdapter
 
 __all__ = [
     "CameraController",
@@ -19,5 +20,6 @@ __all__ = [
     "KineticTypography",
     "DynamicSceneComposer",
     "FoodScienceVisuals",
-    "FOOD_CODE_THEME"
+    "FOOD_CODE_THEME",
+    "ComfyUIAdapter"
 ]
