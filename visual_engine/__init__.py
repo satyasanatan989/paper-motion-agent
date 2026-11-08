@@ -8,6 +8,7 @@ from .motion_presets import MotionEasing, ParticleField
 from .transitions import TransitionLibrary
 from .typography import KineticTypography
 from .scene_composer import DynamicSceneComposer
+from .food_science_library import FoodScienceVisuals, FOOD_CODE_THEME
 
 __all__ = [
     "CameraController",
@@ -16,5 +17,7 @@ __all__ = [
     "ParticleField",
     "TransitionLibrary",
     "KineticTypography",
-    "DynamicSceneComposer"
+    "DynamicSceneComposer",
+    "FoodScienceVisuals",
+    "FOOD_CODE_THEME"
 ]
