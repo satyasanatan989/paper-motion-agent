@@ -1,7 +1,8 @@
 """
 Batch-by-Batch Modular Production Engine for Food Code Episode 001.
 Renders each scene independently with authentic MeanwhileMayank / Vox
-Photographic Papercraft Collage assets and stitches them losslessly.
+Photographic Papercraft Collage assets, tactile props, stop-motion jitter,
+and stitches them losslessly.
 """
 
 import json
@@ -26,6 +27,7 @@ if str(repo_root) not in sys.path:
 
 from pipeline.batch_stitcher import BatchStitcher
 from quality_control.validator import QualityValidator
+from tools.aesthetic_judge import AestheticJudge
 
 proj_dir = Path(__file__).resolve().parent
 output_dir = repo_root / "output" / "food_code"
@@ -46,7 +48,7 @@ master_soundtrack = proj_dir / "soundtrack.mp3"
 render_js = repo_root / "pipeline" / "render.js"
 
 print("=================================================================")
-print("🎬 FOOD CODE 001 — AUTHENTIC PHOTOGRAPHIC PAPERCRAFT COLLAGE")
+print("🎬 FOOD CODE 001 — TACTILE PHOTOGRAPHIC PAPERCRAFT STOP-MOTION")
 print("=================================================================\n")
 
 # Asset URI helpers
@@ -61,14 +63,19 @@ FLIP_CLOCK_URI = get_asset_uri("flip_clock_card.png")
 MACRO_NOODLES_URI = get_asset_uri("macro_noodles_sticker.png")
 RAMEN_NOODLES_URI = get_asset_uri("ramen_noodles_cutout.png")
 MOUTH_ENZYME_URI = get_asset_uri("mouth_enzyme_cutout.png")
-STOMACH_URI = get_asset_uri("stomach_anatomy_cutout.png")
-INTESTINE_URI = get_asset_uri("intestine_sugars_cutout.png")
-BLOODSTREAM_URI = get_asset_uri("bloodstream_absorption_cutout.png")
+STOMACH_URI = get_asset_uri("photo_stomach_cutout.png")
+INTESTINE_URI = get_asset_uri("photo_villi_cutout.png")
+BLOODSTREAM_URI = get_asset_uri("photo_bloodstream_cutout.png")
 NUTRITION_LABEL_URI = get_asset_uri("nutrition_label_cutout.png")
-BALANCED_BOWL_URI = get_asset_uri("balanced_bowl_cutout.png")
+BALANCED_BOWL_URI = get_asset_uri("photo_bowl_cutout.png")
 HERO_CREST_URI = get_asset_uri("science_foodcode_crest.png")
 
-# Base CSS with MeanwhileMayank / Vox aesthetic
+# Tactile Props URIs
+SCOTCH_TAPE_URI = get_asset_uri("scotch_tape_strip.png")
+PUSHPIN_URI = get_asset_uri("pushpin_red.png")
+RUBBER_STAMP_URI = get_asset_uri("rubber_stamp_warning.png")
+
+# Base CSS with MeanwhileMayank / Vox aesthetic + Tactile Props
 BASE_CSS = f"""
 :root {{
   --fc-black: #0E0C0A;
@@ -77,7 +84,7 @@ BASE_CSS = f"""
   --fc-gold: #FFA94D;
   --fc-cream: #F5EBE1;
   --fc-muted: #A89F91;
-  --fc-red: #8B3524;
+  --fc-red: #D90429;
 }}
 * {{ margin: 0; padding: 0; box-sizing: border-box; }}
 html, body {{
@@ -128,13 +135,13 @@ html, body {{
 .ambient-glow {{
   position: absolute; top: 46%; left: 50%; transform: translate(-50%, -50%);
   width: 900px; height: 900px;
-  background: radial-gradient(circle, rgba(255, 107, 0, 0.12) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(255, 107, 0, 0.14) 0%, transparent 70%);
   pointer-events: none; z-index: 50;
 }}
 
 /* MeanwhileMayank Huge Bold Typography */
 .headline-box {{
-  position: absolute; top: 220px; left: 80px; right: 80px;
+  position: absolute; top: 210px; left: 80px; right: 80px;
   text-align: center; z-index: 800;
 }}
 .headline-sub {{
@@ -142,15 +149,15 @@ html, body {{
   letter-spacing: 5px; color: var(--fc-orange); margin-bottom: 8px; text-transform: uppercase;
 }}
 .headline-main {{
-  font-family: 'Bebas Neue', sans-serif; font-size: 78px; line-height: 0.98;
+  font-family: 'Bebas Neue', sans-serif; font-size: 80px; line-height: 0.96;
   letter-spacing: 2px; color: var(--fc-cream); text-transform: uppercase;
   text-shadow: 0 6px 35px rgba(0, 0, 0, 0.95);
 }}
 
 /* Tactile Papercraft Stage */
 .papercraft-stage {{
-  position: absolute; top: 400px; left: 60px;
-  width: 960px; height: 960px;
+  position: absolute; top: 380px; left: 60px;
+  width: 960px; height: 980px;
   display: flex; align-items: center; justify-content: center;
   z-index: 200;
   transform-origin: center center;
@@ -163,17 +170,41 @@ html, body {{
 .secondary-cutout {{
   position: absolute;
   filter: drop-shadow(0 20px 35px rgba(0, 0, 0, 0.85));
-  z-index: 250;
+  z-index: 240;
+}}
+
+/* Tactile Props */
+.prop-tape {{
+  position: absolute;
+  width: 220px;
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.4));
+  z-index: 500;
+  pointer-events: none;
+}}
+.prop-pin {{
+  position: absolute;
+  width: 70px;
+  filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.7));
+  z-index: 600;
+  pointer-events: none;
+}}
+.prop-stamp {{
+  position: absolute;
+  width: 280px;
+  filter: drop-shadow(0 6px 15px rgba(0, 0, 0, 0.6));
+  z-index: 550;
+  pointer-events: none;
+  opacity: 0.92;
 }}
 
 /* Floating Badges & Callout Labels */
 .badge-row {{
-  position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
+  position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
   display: flex; gap: 16px; justify-content: center; width: 100%;
   z-index: 300;
 }}
 .paper-badge {{
-  background: rgba(24, 20, 16, 0.94);
+  background: rgba(24, 20, 16, 0.95);
   border: 1.5px solid var(--fc-cream);
   padding: 8px 18px; border-radius: 8px;
   font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 800;
@@ -188,8 +219,8 @@ html, body {{
 
 /* Bottom Editorial Caption Box */
 .caption-box {{
-  position: absolute; bottom: 230px; left: 80px; right: 80px;
-  background: rgba(20, 17, 14, 0.94);
+  position: absolute; bottom: 220px; left: 80px; right: 80px;
+  background: rgba(20, 17, 14, 0.95);
   border: 1.5px solid rgba(255, 107, 0, 0.45);
   padding: 24px 34px; border-radius: 20px;
   box-shadow: 0 14px 50px rgba(0, 0, 0, 0.9);
@@ -200,18 +231,29 @@ html, body {{
   font-weight: 700; color: var(--fc-cream); text-align: center;
 }}
 .caption-text .highlight {{
-  color: var(--fc-orange); font-weight: 900;
-  text-shadow: 0 0 18px rgba(255, 107, 0, 0.65);
+  position: relative;
+  color: #FFFFFF;
+  font-weight: 900;
+  padding: 2px 8px;
+  background: rgba(255, 107, 0, 0.45);
+  border-radius: 6px;
+  box-shadow: 0 0 16px rgba(255, 107, 0, 0.5);
 }}
 """
 
 def build_scene_visual_html(s_id: str) -> str:
-    """Builds MeanwhileMayank photographic papercraft collage DOM elements for each scene."""
+    """Builds MeanwhileMayank photographic papercraft collage with tactile tape, pins, and stamps."""
     if s_id == "scene_001":
         return f"""
         <div style="position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
           <img class="hero-cutout" src="{MACRO_NOODLES_URI}" alt="Ramen Noodles Macro">
-          <img class="secondary-cutout" src="{FLIP_CLOCK_URI}" style="top: 20px; right: 20px; width: 320px; transform: rotate(4deg);" alt="Split Flap Clock">
+          <img class="prop-pin" src="{PUSHPIN_URI}" style="top: 130px; left: 470px;" alt="Pushpin">
+          
+          <img class="secondary-cutout" src="{FLIP_CLOCK_URI}" style="top: 30px; right: 20px; width: 330px; transform: rotate(5deg);" alt="Split Flap Clock">
+          <img class="prop-tape" src="{SCOTCH_TAPE_URI}" style="top: 15px; right: 90px; transform: rotate(-3deg);" alt="Scotch Tape">
+          
+          <img class="prop-stamp" src="{RUBBER_STAMP_URI}" style="bottom: 120px; left: 40px; transform: rotate(-8deg);" alt="Evidence Stamp">
+          
           <div class="badge-row">
             <span class="paper-badge orange">DEEP FRIED & DEHYDRATED</span>
             <span class="paper-badge">REFINED WHEAT (MAIDA)</span>
@@ -221,11 +263,15 @@ def build_scene_visual_html(s_id: str) -> str:
     elif s_id == "scene_002":
         return f"""
         <div style="position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
-          <img class="hero-cutout" src="{MOUTH_ENZYME_URI}" alt="Salivary Amylase">
-          <img class="secondary-cutout" src="{RAMEN_NOODLES_URI}" style="bottom: 80px; left: 10px; width: 280px; transform: rotate(-6deg); opacity: 0.85;" alt="Noodle Strands">
+          <img class="secondary-cutout" src="{RAMEN_NOODLES_URI}" style="top: 30px; left: 20px; width: 380px; transform: rotate(-5deg); opacity: 0.9;" alt="Noodle Strands">
+          <img class="prop-pin" src="{PUSHPIN_URI}" style="top: 15px; left: 190px;" alt="Pushpin">
+          
+          <img class="hero-cutout" src="{MOUTH_ENZYME_URI}" style="margin-top: 120px;" alt="Salivary Amylase">
+          <img class="prop-tape" src="{SCOTCH_TAPE_URI}" style="top: 230px; right: 120px; transform: rotate(12deg);" alt="Tape">
+          
           <div class="badge-row">
             <span class="paper-badge orange">SALIVARY AMYLASE (PTYALIN)</span>
-            <span class="paper-badge">pH 6.8 OPTIMAL</span>
+            <span class="paper-badge">STARCH → DISACCHARIDES</span>
           </div>
         </div>
         """
@@ -233,7 +279,13 @@ def build_scene_visual_html(s_id: str) -> str:
         return f"""
         <div style="position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
           <img class="hero-cutout" src="{STOMACH_URI}" alt="Stomach Anatomy">
-          <img class="secondary-cutout" src="{FLIP_CLOCK_URI}" style="top: 30px; left: 30px; width: 300px; transform: rotate(-5deg);" alt="Split Flap Clock">
+          <img class="prop-pin" src="{PUSHPIN_URI}" style="top: 120px; left: 490px;" alt="Pushpin">
+          
+          <img class="secondary-cutout" src="{FLIP_CLOCK_URI}" style="top: 30px; left: 20px; width: 320px; transform: rotate(-6deg);" alt="Split Flap Clock">
+          <img class="prop-tape" src="{SCOTCH_TAPE_URI}" style="top: 15px; left: 80px; transform: rotate(-2deg);" alt="Tape">
+          
+          <img class="prop-stamp" src="{RUBBER_STAMP_URI}" style="bottom: 110px; right: 40px; transform: rotate(6deg);" alt="Warning Stamp">
+          
           <div class="badge-row">
             <span class="paper-badge orange">HYDROCHLORIC ACID (pH 1.5 - 2.0)</span>
             <span class="paper-badge">GASTRIC PERISTALSIS</span>
@@ -243,17 +295,27 @@ def build_scene_visual_html(s_id: str) -> str:
     elif s_id == "scene_004":
         return f"""
         <div style="position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
-          <img class="hero-cutout" src="{INTESTINE_URI}" alt="Intestinal Brush Border">
+          <img class="secondary-cutout" src="{MACRO_NOODLES_URI}" style="top: 20px; right: 30px; width: 300px; transform: rotate(6deg); opacity: 0.85;" alt="Noodles">
+          <img class="prop-tape" src="{SCOTCH_TAPE_URI}" style="top: 10px; right: 80px; transform: rotate(-4deg);" alt="Tape">
+          
+          <img class="hero-cutout" src="{INTESTINE_URI}" style="margin-top: 20px;" alt="Intestinal Brush Border">
+          <img class="prop-pin" src="{PUSHPIN_URI}" style="top: 140px; left: 320px;" alt="Pushpin">
+          
           <div class="badge-row">
             <span class="paper-badge orange">PANCREATIC ENZYMES</span>
-            <span class="paper-badge">MALTOSE → GLUCOSE</span>
+            <span class="paper-badge">RAPID GLUCOSE SPIKE</span>
           </div>
         </div>
         """
     elif s_id == "scene_005":
         return f"""
         <div style="position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
-          <img class="hero-cutout" src="{BLOODSTREAM_URI}" alt="Bloodstream Absorption">
+          <img class="secondary-cutout" src="{FLIP_CLOCK_URI}" style="top: 20px; left: 30px; width: 320px; transform: rotate(-5deg);" alt="Clock">
+          <img class="prop-tape" src="{SCOTCH_TAPE_URI}" style="top: 10px; left: 90px; transform: rotate(3deg);" alt="Tape">
+          
+          <img class="hero-cutout" src="{BLOODSTREAM_URI}" style="margin-top: 20px;" alt="Bloodstream Absorption">
+          <img class="prop-pin" src="{PUSHPIN_URI}" style="top: 150px; right: 340px;" alt="Pushpin">
+          
           <div class="badge-row">
             <span class="paper-badge orange">GLYCEMIC SURGE</span>
             <span class="paper-badge">INSULIN RESPONSE • CELLULAR ENERGY</span>
@@ -264,6 +326,12 @@ def build_scene_visual_html(s_id: str) -> str:
         return f"""
         <div style="position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
           <img class="hero-cutout" src="{NUTRITION_LABEL_URI}" alt="Nutrition Label">
+          <img class="prop-tape" src="{SCOTCH_TAPE_URI}" style="top: 140px; left: 240px; transform: rotate(-18deg);" alt="Tape Left">
+          <img class="prop-tape" src="{SCOTCH_TAPE_URI}" style="top: 140px; right: 240px; transform: rotate(18deg);" alt="Tape Right">
+          
+          <img class="prop-stamp" src="{RUBBER_STAMP_URI}" style="top: 420px; right: 80px; transform: rotate(10deg);" alt="Stamp Warning">
+          <img class="prop-pin" src="{PUSHPIN_URI}" style="top: 120px; left: 450px;" alt="Pushpin">
+          
           <div class="badge-row">
             <span class="paper-badge orange">SODIUM: ~1760mg (76% DV)</span>
             <span class="paper-badge">SEASONING OIL SACHET</span>
@@ -273,7 +341,12 @@ def build_scene_visual_html(s_id: str) -> str:
     elif s_id == "scene_007":
         return f"""
         <div style="position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
-          <img class="hero-cutout" src="{BALANCED_BOWL_URI}" alt="Balanced Bowl">
+          <img class="secondary-cutout" src="{NUTRITION_LABEL_URI}" style="top: 20px; left: 20px; width: 280px; transform: rotate(-8deg); opacity: 0.85;" alt="Nutrition Label">
+          <img class="prop-tape" src="{SCOTCH_TAPE_URI}" style="top: 10px; left: 80px; transform: rotate(4deg);" alt="Tape">
+          
+          <img class="hero-cutout" src="{BALANCED_BOWL_URI}" style="margin-top: 10px; max-width: 650px; max-height: 650px;" alt="Balanced Bowl">
+          <img class="prop-pin" src="{PUSHPIN_URI}" style="top: 140px; right: 380px;" alt="Pushpin">
+          
           <div class="badge-row">
             <span class="paper-badge orange">+ PROTEIN (BOILED EGG)</span>
             <span class="paper-badge">+ FIBER (BOK CHOY & GREENS)</span>
@@ -284,7 +357,12 @@ def build_scene_visual_html(s_id: str) -> str:
         return f"""
         <div style="position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
           <img class="hero-cutout" src="{HERO_CREST_URI}" alt="Food Code Crest">
-          <img class="secondary-cutout" src="{BALANCED_BOWL_URI}" style="bottom: 20px; right: 20px; width: 280px; transform: rotate(5deg); opacity: 0.85;" alt="Balanced Bowl Accent">
+          <img class="prop-pin" src="{PUSHPIN_URI}" style="top: 140px; left: 450px;" alt="Pushpin">
+          <img class="prop-tape" src="{SCOTCH_TAPE_URI}" style="top: 160px; right: 210px; transform: rotate(15deg);" alt="Tape">
+          
+          <img class="secondary-cutout" src="{BALANCED_BOWL_URI}" style="bottom: 40px; right: 30px; width: 320px; transform: rotate(6deg);" alt="Bowl Accent">
+          <img class="prop-stamp" src="{RUBBER_STAMP_URI}" style="bottom: 120px; left: 40px; transform: rotate(-6deg);" alt="Stamp">
+          
           <div class="badge-row">
             <span class="paper-badge orange">SCIENCE > FEAR</span>
             <span class="paper-badge">EVIDENCE-BASED NUTRITION</span>
@@ -305,7 +383,7 @@ def generate_scene_stage(scene: dict, scene_idx: int) -> Path:
         
     visual_html = build_scene_visual_html(s_id)
     
-    # Build timeline.js with cinematic ease and parallax drift
+    # Build timeline.js with Stop-Motion Frame Jitter (Quantized to 12 FPS) + Cinematic Camera Moves
     cam = scene["camera"]
     z_start = cam.get("zoom_start", 1.0)
     z_end = cam.get("zoom_end", 1.10)
@@ -317,7 +395,7 @@ def generate_scene_stage(scene: dict, scene_idx: int) -> Path:
     window.setSeekTime = function(t) {{
       currentTime = Math.max(0.0, Math.min(TOTAL_DURATION, t));
       const p = currentTime / TOTAL_DURATION;
-      // Smooth cubic ease out
+      // Smooth cubic ease out for camera
       const easeP = 1.0 - Math.pow(1.0 - p, 3);
       const zoom = {z_start} + ({z_end} - {z_start}) * easeP;
       
@@ -338,9 +416,20 @@ def generate_scene_stage(scene: dict, scene_idx: int) -> Path:
         rot = 0.8 * Math.sin(p * Math.PI);
       }}
       
+      // Stop-Motion Frame Jitter Engine (Quantized to 12 FPS: updates every 2.5 frames)
+      const frameNum = Math.floor(currentTime * 30);
+      const jitterCycle = Math.floor(frameNum / 2.5);
+      const hash = Math.sin(jitterCycle * 12.9898 + 78.233) * 43758.5453;
+      const jitterRot = ((hash - Math.floor(hash)) - 0.5) * 1.2; // +/- 0.6 deg
+      const jitterX = (((hash * 10) - Math.floor(hash * 10)) - 0.5) * 2.6; // +/- 1.3 px
+      const jitterY = (((hash * 100) - Math.floor(hash * 100)) - 0.5) * 2.6; // +/- 1.3 px
+      
       const st = document.getElementById('stage-asset');
       if (st) {{
-        st.style.transform = `translate3d(${{panX.toFixed(2)}}px, ${{panY.toFixed(2)}}px, 0px) scale(${{zoom.toFixed(4)}}) rotate(${{rot.toFixed(2)}}deg)`;
+        const finalX = (panX + jitterX).toFixed(2);
+        const finalY = (panY + jitterY).toFixed(2);
+        const finalRot = (rot + jitterRot).toFixed(2);
+        st.style.transform = `translate3d(${{finalX}}px, ${{finalY}}px, 0px) scale(${{zoom.toFixed(4)}}) rotate(${{finalRot}}deg)`;
       }}
     }};
     window.getCurrentTime = () => currentTime;
@@ -452,7 +541,19 @@ print(f"       -> Duration: {qc_report.duration:.2f}s")
 print(f"       -> Loudness: {qc_report.integrated_lufs} LUFS (Peak: {qc_report.true_peak_db} dBTP)")
 print(f"       -> Black Frames: {qc_report.black_frame_count}")
 
+# Step 4: Run Aesthetic Judge Self-Evaluation
+print("\n🎨 [Aesthetic Judge] Running visual critic & scoring against viral documentary standard...")
+judge = AestheticJudge()
+aesthetic_report = judge.judge_video(final_video, scene_count=8)
+aesthetic_path = output_dir / "aesthetic_report.json"
+with open(aesthetic_path, "w", encoding="utf-8") as f:
+    json.dump(aesthetic_report, f, indent=2)
+print(f"       -> Average Aesthetic Score: {aesthetic_report['average_aesthetic_score']}/100")
+print(f"       -> Viral Ready: {aesthetic_report['viral_ready']}")
+for sc_res in aesthetic_report["scenes"]:
+    print(f"          Scene {sc_res['scene_index']:02d}: {sc_res['composite_score']} pts ({sc_res['status']})")
+
 print("\n=================================================================")
-print("✅ BATCH-BY-BATCH PRODUCTION & LOSSLESS STITCHING COMPLETE!")
+print("✅ TACTILE PHOTOGRAPHIC PAPERCRAFT STOP-MOTION PRODUCTION COMPLETE!")
 print(f"   Deliverable: {final_video}")
 print("=================================================================\n")
