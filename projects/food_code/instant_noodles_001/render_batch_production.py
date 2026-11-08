@@ -1,8 +1,8 @@
 """
 Batch-by-Batch Modular Production Engine for Food Code Episode 001.
 Renders each scene independently with authentic MeanwhileMayank / Vox
-Photographic Papercraft Collage assets, tactile props, stop-motion jitter,
-and stitches them losslessly.
+Photographic Papercraft Collage assets, tactile props, kinetic animations,
+dynamic flip clocks, odometers, bubbling acid, and stitches them losslessly.
 """
 
 import json
@@ -28,6 +28,7 @@ if str(repo_root) not in sys.path:
 from pipeline.batch_stitcher import BatchStitcher
 from quality_control.validator import QualityValidator
 from tools.aesthetic_judge import AestheticJudge
+from visual_engine.kinetic_elements import KineticElements
 
 proj_dir = Path(__file__).resolve().parent
 output_dir = repo_root / "output" / "food_code"
@@ -48,7 +49,7 @@ master_soundtrack = proj_dir / "soundtrack.mp3"
 render_js = repo_root / "pipeline" / "render.js"
 
 print("=================================================================")
-print("🎬 FOOD CODE 001 — TACTILE PHOTOGRAPHIC PAPERCRAFT STOP-MOTION")
+print("🎬 FOOD CODE 001 — HIGH-ENERGY KINETIC MOTION GRAPHICS REEL")
 print("=================================================================\n")
 
 # Asset URI helpers
@@ -59,7 +60,6 @@ def get_asset_uri(name: str) -> str:
     return path.resolve().as_uri()
 
 CANVAS_URI = get_asset_uri("notebook_canvas.jpg")
-FLIP_CLOCK_URI = get_asset_uri("flip_clock_card.png")
 MACRO_NOODLES_URI = get_asset_uri("macro_noodles_sticker.png")
 RAMEN_NOODLES_URI = get_asset_uri("ramen_noodles_cutout.png")
 MOUTH_ENZYME_URI = get_asset_uri("mouth_enzyme_cutout.png")
@@ -75,7 +75,8 @@ SCOTCH_TAPE_URI = get_asset_uri("scotch_tape_strip.png")
 PUSHPIN_URI = get_asset_uri("pushpin_red.png")
 RUBBER_STAMP_URI = get_asset_uri("rubber_stamp_warning.png")
 
-# Base CSS with MeanwhileMayank / Vox aesthetic + Tactile Props
+# Base CSS with MeanwhileMayank / Vox aesthetic + Kinetic Styles
+KINETIC_CSS = KineticElements.get_kinetic_css()
 BASE_CSS = f"""
 :root {{
   --fc-black: #0E0C0A;
@@ -171,6 +172,7 @@ html, body {{
   position: absolute;
   filter: drop-shadow(0 20px 35px rgba(0, 0, 0, 0.85));
   z-index: 240;
+  transform-origin: center center;
 }}
 
 /* Tactile Props */
@@ -180,6 +182,7 @@ html, body {{
   filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.4));
   z-index: 500;
   pointer-events: none;
+  transform-origin: center center;
 }}
 .prop-pin {{
   position: absolute;
@@ -187,6 +190,7 @@ html, body {{
   filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.7));
   z-index: 600;
   pointer-events: none;
+  transform-origin: center center;
 }}
 .prop-stamp {{
   position: absolute;
@@ -194,7 +198,7 @@ html, body {{
   filter: drop-shadow(0 6px 15px rgba(0, 0, 0, 0.6));
   z-index: 550;
   pointer-events: none;
-  opacity: 0.92;
+  transform-origin: center center;
 }}
 
 /* Floating Badges & Callout Labels */
@@ -210,6 +214,7 @@ html, body {{
   font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 800;
   letter-spacing: 1px; color: var(--fc-cream);
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.75);
+  transform-origin: center center;
 }}
 .paper-badge.orange {{
   border-color: var(--fc-orange);
@@ -235,137 +240,159 @@ html, body {{
   color: #FFFFFF;
   font-weight: 900;
   padding: 2px 8px;
-  background: rgba(255, 107, 0, 0.45);
+  background: rgba(255, 107, 0, 0.55);
   border-radius: 6px;
-  box-shadow: 0 0 16px rgba(255, 107, 0, 0.5);
+  box-shadow: 0 0 18px rgba(255, 107, 0, 0.65);
 }}
+
+{KINETIC_CSS}
 """
 
 def build_scene_visual_html(s_id: str) -> str:
-    """Builds MeanwhileMayank photographic papercraft collage with tactile tape, pins, and stamps."""
+    """Builds MeanwhileMayank photographic papercraft collage with kinetic elements."""
     if s_id == "scene_001":
+        clock_html = KineticElements.split_flap_clock_html("clock-01")
         return f"""
         <div style="position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
-          <img class="hero-cutout" src="{MACRO_NOODLES_URI}" alt="Ramen Noodles Macro">
-          <img class="prop-pin" src="{PUSHPIN_URI}" style="top: 130px; left: 470px;" alt="Pushpin">
+          <img id="hero-card" class="hero-cutout" src="{MACRO_NOODLES_URI}" alt="Ramen Noodles Macro">
+          <img id="pin-elem" class="prop-pin" src="{PUSHPIN_URI}" style="top: 130px; left: 470px;" alt="Pushpin">
           
-          <img class="secondary-cutout" src="{FLIP_CLOCK_URI}" style="top: 30px; right: 20px; width: 330px; transform: rotate(5deg);" alt="Split Flap Clock">
-          <img class="prop-tape" src="{SCOTCH_TAPE_URI}" style="top: 15px; right: 90px; transform: rotate(-3deg);" alt="Scotch Tape">
+          <div id="clock-container" style="position: absolute; top: 30px; right: 20px; transform: rotate(5deg);">
+            {clock_html}
+          </div>
+          <img id="tape-elem" class="prop-tape" src="{SCOTCH_TAPE_URI}" style="top: 15px; right: 90px; transform: rotate(-3deg);" alt="Scotch Tape">
           
-          <img class="prop-stamp" src="{RUBBER_STAMP_URI}" style="bottom: 120px; left: 40px; transform: rotate(-8deg);" alt="Evidence Stamp">
+          <img id="stamp-elem" class="prop-stamp" src="{RUBBER_STAMP_URI}" style="bottom: 120px; left: 40px; transform: rotate(-8deg);" alt="Evidence Stamp">
           
           <div class="badge-row">
-            <span class="paper-badge orange">DEEP FRIED & DEHYDRATED</span>
-            <span class="paper-badge">REFINED WHEAT (MAIDA)</span>
+            <span id="badge-1" class="paper-badge orange">DEEP FRIED & DEHYDRATED</span>
+            <span id="badge-2" class="paper-badge">REFINED WHEAT (MAIDA)</span>
           </div>
         </div>
         """
     elif s_id == "scene_002":
         return f"""
         <div style="position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
-          <img class="secondary-cutout" src="{RAMEN_NOODLES_URI}" style="top: 30px; left: 20px; width: 380px; transform: rotate(-5deg); opacity: 0.9;" alt="Noodle Strands">
-          <img class="prop-pin" src="{PUSHPIN_URI}" style="top: 15px; left: 190px;" alt="Pushpin">
+          <img id="sec-card" class="secondary-cutout" src="{RAMEN_NOODLES_URI}" style="top: 30px; left: 20px; width: 380px; transform: rotate(-5deg); opacity: 0.9;" alt="Noodle Strands">
+          <img id="pin-elem" class="prop-pin" src="{PUSHPIN_URI}" style="top: 15px; left: 190px;" alt="Pushpin">
           
-          <img class="hero-cutout" src="{MOUTH_ENZYME_URI}" style="margin-top: 120px;" alt="Salivary Amylase">
-          <img class="prop-tape" src="{SCOTCH_TAPE_URI}" style="top: 230px; right: 120px; transform: rotate(12deg);" alt="Tape">
+          <img id="hero-card" class="hero-cutout" src="{MOUTH_ENZYME_URI}" style="margin-top: 120px;" alt="Salivary Amylase">
+          <img id="tape-elem" class="prop-tape" src="{SCOTCH_TAPE_URI}" style="top: 230px; right: 120px; transform: rotate(12deg);" alt="Tape">
           
           <div class="badge-row">
-            <span class="paper-badge orange">SALIVARY AMYLASE (PTYALIN)</span>
-            <span class="paper-badge">STARCH → DISACCHARIDES</span>
+            <span id="badge-1" class="paper-badge orange">SALIVARY AMYLASE (PTYALIN)</span>
+            <span id="badge-2" class="paper-badge">STARCH → DISACCHARIDES</span>
           </div>
         </div>
         """
     elif s_id == "scene_003":
+        clock_html = KineticElements.split_flap_clock_html("clock-03")
+        acid_bubbles = KineticElements.bubbling_acid_svg()
         return f"""
         <div style="position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
-          <img class="hero-cutout" src="{STOMACH_URI}" alt="Stomach Anatomy">
-          <img class="prop-pin" src="{PUSHPIN_URI}" style="top: 120px; left: 490px;" alt="Pushpin">
+          <img id="hero-card" class="hero-cutout" src="{STOMACH_URI}" alt="Stomach Anatomy">
+          {acid_bubbles}
+          <img id="pin-elem" class="prop-pin" src="{PUSHPIN_URI}" style="top: 120px; left: 490px;" alt="Pushpin">
           
-          <img class="secondary-cutout" src="{FLIP_CLOCK_URI}" style="top: 30px; left: 20px; width: 320px; transform: rotate(-6deg);" alt="Split Flap Clock">
-          <img class="prop-tape" src="{SCOTCH_TAPE_URI}" style="top: 15px; left: 80px; transform: rotate(-2deg);" alt="Tape">
+          <div id="clock-container" style="position: absolute; top: 30px; left: 20px; transform: rotate(-6deg);">
+            {clock_html}
+          </div>
+          <img id="tape-elem" class="prop-tape" src="{SCOTCH_TAPE_URI}" style="top: 15px; left: 80px; transform: rotate(-2deg);" alt="Tape">
           
-          <img class="prop-stamp" src="{RUBBER_STAMP_URI}" style="bottom: 110px; right: 40px; transform: rotate(6deg);" alt="Warning Stamp">
+          <img id="stamp-elem" class="prop-stamp" src="{RUBBER_STAMP_URI}" style="bottom: 110px; right: 40px; transform: rotate(6deg);" alt="Warning Stamp">
           
           <div class="badge-row">
-            <span class="paper-badge orange">HYDROCHLORIC ACID (pH 1.5 - 2.0)</span>
-            <span class="paper-badge">GASTRIC PERISTALSIS</span>
+            <span id="badge-1" class="paper-badge orange">HYDROCHLORIC ACID (pH 1.5 - 2.0)</span>
+            <span id="badge-2" class="paper-badge">GASTRIC PERISTALSIS</span>
           </div>
         </div>
         """
     elif s_id == "scene_004":
         return f"""
         <div style="position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
-          <img class="secondary-cutout" src="{MACRO_NOODLES_URI}" style="top: 20px; right: 30px; width: 300px; transform: rotate(6deg); opacity: 0.85;" alt="Noodles">
-          <img class="prop-tape" src="{SCOTCH_TAPE_URI}" style="top: 10px; right: 80px; transform: rotate(-4deg);" alt="Tape">
+          <img id="sec-card" class="secondary-cutout" src="{MACRO_NOODLES_URI}" style="top: 20px; right: 30px; width: 300px; transform: rotate(6deg); opacity: 0.85;" alt="Noodles">
+          <img id="tape-elem" class="prop-tape" src="{SCOTCH_TAPE_URI}" style="top: 10px; right: 80px; transform: rotate(-4deg);" alt="Tape">
           
-          <img class="hero-cutout" src="{INTESTINE_URI}" style="margin-top: 20px;" alt="Intestinal Brush Border">
-          <img class="prop-pin" src="{PUSHPIN_URI}" style="top: 140px; left: 320px;" alt="Pushpin">
+          <img id="hero-card" class="hero-cutout" src="{INTESTINE_URI}" style="margin-top: 20px;" alt="Intestinal Brush Border">
+          <img id="pin-elem" class="prop-pin" src="{PUSHPIN_URI}" style="top: 140px; left: 320px;" alt="Pushpin">
           
           <div class="badge-row">
-            <span class="paper-badge orange">PANCREATIC ENZYMES</span>
-            <span class="paper-badge">RAPID GLUCOSE SPIKE</span>
+            <span id="badge-1" class="paper-badge orange">PANCREATIC ENZYMES</span>
+            <span id="badge-2" class="paper-badge">RAPID GLUCOSE SPIKE</span>
           </div>
         </div>
         """
     elif s_id == "scene_005":
+        clock_html = KineticElements.split_flap_clock_html("clock-05")
         return f"""
         <div style="position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
-          <img class="secondary-cutout" src="{FLIP_CLOCK_URI}" style="top: 20px; left: 30px; width: 320px; transform: rotate(-5deg);" alt="Clock">
-          <img class="prop-tape" src="{SCOTCH_TAPE_URI}" style="top: 10px; left: 90px; transform: rotate(3deg);" alt="Tape">
+          <div id="clock-container" style="position: absolute; top: 20px; left: 30px; transform: rotate(-5deg);">
+            {clock_html}
+          </div>
+          <img id="tape-elem" class="prop-tape" src="{SCOTCH_TAPE_URI}" style="top: 10px; left: 90px; transform: rotate(3deg);" alt="Tape">
           
-          <img class="hero-cutout" src="{BLOODSTREAM_URI}" style="margin-top: 20px;" alt="Bloodstream Absorption">
-          <img class="prop-pin" src="{PUSHPIN_URI}" style="top: 150px; right: 340px;" alt="Pushpin">
+          <img id="hero-card" class="hero-cutout" src="{BLOODSTREAM_URI}" style="margin-top: 20px;" alt="Bloodstream Absorption">
+          <img id="pin-elem" class="prop-pin" src="{PUSHPIN_URI}" style="top: 150px; right: 340px;" alt="Pushpin">
           
           <div class="badge-row">
-            <span class="paper-badge orange">GLYCEMIC SURGE</span>
-            <span class="paper-badge">INSULIN RESPONSE • CELLULAR ENERGY</span>
+            <span id="badge-1" class="paper-badge orange">GLYCEMIC SURGE</span>
+            <span id="badge-2" class="paper-badge">INSULIN RESPONSE • CELLULAR ENERGY</span>
           </div>
         </div>
         """
     elif s_id == "scene_006":
+        laser_html = KineticElements.scanning_laser_html()
+        odometer_html = KineticElements.kinetic_odometer_html("odo-sodium")
         return f"""
         <div style="position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
-          <img class="hero-cutout" src="{NUTRITION_LABEL_URI}" alt="Nutrition Label">
-          <img class="prop-tape" src="{SCOTCH_TAPE_URI}" style="top: 140px; left: 240px; transform: rotate(-18deg);" alt="Tape Left">
-          <img class="prop-tape" src="{SCOTCH_TAPE_URI}" style="top: 140px; right: 240px; transform: rotate(18deg);" alt="Tape Right">
+          <div id="nutrition-wrap" style="position: relative;">
+            <img id="hero-card" class="hero-cutout" src="{NUTRITION_LABEL_URI}" alt="Nutrition Label">
+            {laser_html}
+          </div>
+          <img id="tape-elem-1" class="prop-tape" src="{SCOTCH_TAPE_URI}" style="top: 140px; left: 240px; transform: rotate(-18deg);" alt="Tape Left">
+          <img id="tape-elem-2" class="prop-tape" src="{SCOTCH_TAPE_URI}" style="top: 140px; right: 240px; transform: rotate(18deg);" alt="Tape Right">
           
-          <img class="prop-stamp" src="{RUBBER_STAMP_URI}" style="top: 420px; right: 80px; transform: rotate(10deg);" alt="Stamp Warning">
-          <img class="prop-pin" src="{PUSHPIN_URI}" style="top: 120px; left: 450px;" alt="Pushpin">
+          <div id="odometer-container" style="position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%); width: 440px;">
+            {odometer_html}
+          </div>
           
-          <div class="badge-row">
-            <span class="paper-badge orange">SODIUM: ~1760mg (76% DV)</span>
-            <span class="paper-badge">SEASONING OIL SACHET</span>
+          <img id="stamp-elem" class="prop-stamp" src="{RUBBER_STAMP_URI}" style="top: 420px; right: 80px; transform: rotate(10deg);" alt="Stamp Warning">
+          <img id="pin-elem" class="prop-pin" src="{PUSHPIN_URI}" style="top: 120px; left: 450px;" alt="Pushpin">
+          
+          <div class="badge-row" style="bottom: 10px;">
+            <span id="badge-1" class="paper-badge orange">SODIUM: ~1760mg (76% DV)</span>
+            <span id="badge-2" class="paper-badge">SEASONING OIL SACHET</span>
           </div>
         </div>
         """
     elif s_id == "scene_007":
         return f"""
         <div style="position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
-          <img class="secondary-cutout" src="{NUTRITION_LABEL_URI}" style="top: 20px; left: 20px; width: 280px; transform: rotate(-8deg); opacity: 0.85;" alt="Nutrition Label">
-          <img class="prop-tape" src="{SCOTCH_TAPE_URI}" style="top: 10px; left: 80px; transform: rotate(4deg);" alt="Tape">
+          <img id="sec-card" class="secondary-cutout" src="{NUTRITION_LABEL_URI}" style="top: 20px; left: 20px; width: 280px; transform: rotate(-8deg); opacity: 0.85;" alt="Nutrition Label">
+          <img id="tape-elem" class="prop-tape" src="{SCOTCH_TAPE_URI}" style="top: 10px; left: 80px; transform: rotate(4deg);" alt="Tape">
           
-          <img class="hero-cutout" src="{BALANCED_BOWL_URI}" style="margin-top: 10px; max-width: 650px; max-height: 650px;" alt="Balanced Bowl">
-          <img class="prop-pin" src="{PUSHPIN_URI}" style="top: 140px; right: 380px;" alt="Pushpin">
+          <img id="hero-card" class="hero-cutout" src="{BALANCED_BOWL_URI}" style="margin-top: 10px; max-width: 650px; max-height: 650px;" alt="Balanced Bowl">
+          <img id="pin-elem" class="prop-pin" src="{PUSHPIN_URI}" style="top: 140px; right: 380px;" alt="Pushpin">
           
           <div class="badge-row">
-            <span class="paper-badge orange">+ PROTEIN (BOILED EGG)</span>
-            <span class="paper-badge">+ FIBER (BOK CHOY & GREENS)</span>
+            <span id="badge-1" class="paper-badge orange">+ PROTEIN (BOILED EGG)</span>
+            <span id="badge-2" class="paper-badge">+ FIBER (BOK CHOY & GREENS)</span>
           </div>
         </div>
         """
     elif s_id == "scene_008":
         return f"""
         <div style="position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
-          <img class="hero-cutout" src="{HERO_CREST_URI}" alt="Food Code Crest">
-          <img class="prop-pin" src="{PUSHPIN_URI}" style="top: 140px; left: 450px;" alt="Pushpin">
-          <img class="prop-tape" src="{SCOTCH_TAPE_URI}" style="top: 160px; right: 210px; transform: rotate(15deg);" alt="Tape">
+          <img id="hero-card" class="hero-cutout" src="{HERO_CREST_URI}" alt="Food Code Crest">
+          <img id="pin-elem" class="prop-pin" src="{PUSHPIN_URI}" style="top: 140px; left: 450px;" alt="Pushpin">
+          <img id="tape-elem" class="prop-tape" src="{SCOTCH_TAPE_URI}" style="top: 160px; right: 210px; transform: rotate(15deg);" alt="Tape">
           
-          <img class="secondary-cutout" src="{BALANCED_BOWL_URI}" style="bottom: 40px; right: 30px; width: 320px; transform: rotate(6deg);" alt="Bowl Accent">
-          <img class="prop-stamp" src="{RUBBER_STAMP_URI}" style="bottom: 120px; left: 40px; transform: rotate(-6deg);" alt="Stamp">
+          <img id="sec-card" class="secondary-cutout" src="{BALANCED_BOWL_URI}" style="bottom: 40px; right: 30px; width: 320px; transform: rotate(6deg);" alt="Bowl Accent">
+          <img id="stamp-elem" class="prop-stamp" src="{RUBBER_STAMP_URI}" style="bottom: 120px; left: 40px; transform: rotate(-6deg);" alt="Stamp">
           
           <div class="badge-row">
-            <span class="paper-badge orange">SCIENCE > FEAR</span>
-            <span class="paper-badge">EVIDENCE-BASED NUTRITION</span>
+            <span id="badge-1" class="paper-badge orange">SCIENCE > FEAR</span>
+            <span id="badge-2" class="paper-badge">EVIDENCE-BASED NUTRITION</span>
           </div>
         </div>
         """
@@ -383,13 +410,17 @@ def generate_scene_stage(scene: dict, scene_idx: int) -> Path:
         
     visual_html = build_scene_visual_html(s_id)
     
-    # Build timeline.js with Stop-Motion Frame Jitter (Quantized to 12 FPS) + Cinematic Camera Moves
+    # Build timeline.js with spring physics, 12 FPS stop-motion jitter, and per-scene kinetic motions
     cam = scene["camera"]
     z_start = cam.get("zoom_start", 1.0)
     z_end = cam.get("zoom_end", 1.10)
     movement = cam.get("movement", "slow_dolly_in")
     
+    helpers_js = KineticElements.get_kinetic_js_helpers()
+    
     js_content = f"""
+    {helpers_js}
+    
     let currentTime = 0.0;
     const TOTAL_DURATION = {dur};
     window.setSeekTime = function(t) {{
@@ -416,13 +447,13 @@ def generate_scene_stage(scene: dict, scene_idx: int) -> Path:
         rot = 0.8 * Math.sin(p * Math.PI);
       }}
       
-      // Stop-Motion Frame Jitter Engine (Quantized to 12 FPS: updates every 2.5 frames)
+      // Stop-Motion Frame Jitter Engine (Quantized to 12 FPS)
       const frameNum = Math.floor(currentTime * 30);
       const jitterCycle = Math.floor(frameNum / 2.5);
       const hash = Math.sin(jitterCycle * 12.9898 + 78.233) * 43758.5453;
-      const jitterRot = ((hash - Math.floor(hash)) - 0.5) * 1.2; // +/- 0.6 deg
-      const jitterX = (((hash * 10) - Math.floor(hash * 10)) - 0.5) * 2.6; // +/- 1.3 px
-      const jitterY = (((hash * 100) - Math.floor(hash * 100)) - 0.5) * 2.6; // +/- 1.3 px
+      const jitterRot = ((hash - Math.floor(hash)) - 0.5) * 1.2;
+      const jitterX = (((hash * 10) - Math.floor(hash * 10)) - 0.5) * 2.6;
+      const jitterY = (((hash * 100) - Math.floor(hash * 100)) - 0.5) * 2.6;
       
       const st = document.getElementById('stage-asset');
       if (st) {{
@@ -430,6 +461,107 @@ def generate_scene_stage(scene: dict, scene_idx: int) -> Path:
         const finalY = (panY + jitterY).toFixed(2);
         const finalRot = (rot + jitterRot).toFixed(2);
         st.style.transform = `translate3d(${{finalX}}px, ${{finalY}}px, 0px) scale(${{zoom.toFixed(4)}}) rotate(${{finalRot}}deg)`;
+      }}
+      
+      // 1. Spring Entry on Hero Cutout
+      const hero = document.getElementById('hero-card');
+      if (hero) {{
+        const entryP = clamp(currentTime / 0.42, 0, 1);
+        const spring = springBounce(entryP);
+        const dropY = (1.0 - spring) * -90;
+        const entryScale = 0.88 + 0.12 * spring;
+        hero.style.transform = `translateY(${{dropY.toFixed(2)}}px) scale(${{entryScale.toFixed(4)}})`;
+      }}
+      
+      // 2. Pushpin Slam
+      const pin = document.getElementById('pin-elem');
+      if (pin) {{
+        const pinP = clamp((currentTime - 0.35) / 0.22, 0, 1);
+        const pScale = springBounce(pinP);
+        pin.style.transform = `scale(${{pScale.toFixed(3)}})`;
+        pin.style.opacity = pinP > 0 ? '1' : '0';
+      }}
+      
+      // 3. Scotch Tape Slap
+      const tape = document.getElementById('tape-elem');
+      if (tape) {{
+        const tapeP = clamp((currentTime - 0.25) / 0.22, 0, 1);
+        const tScale = springBounce(tapeP);
+        tape.style.transform = `scale(${{tScale.toFixed(3)}})`;
+        tape.style.opacity = tapeP > 0 ? '1' : '0';
+      }}
+      
+      // 4. Rubber Stamp Slam Impact
+      const stamp = document.getElementById('stamp-elem');
+      if (stamp) {{
+        const stampP = clamp((currentTime - 0.85) / 0.22, 0, 1);
+        if (stampP <= 0) {{
+          stamp.style.opacity = '0';
+        }} else {{
+          const sScale = 2.2 - 1.2 * springBounce(stampP);
+          stamp.style.opacity = '0.94';
+          stamp.style.transform = `scale(${{sScale.toFixed(3)}}) rotate(-6deg)`;
+        }}
+      }}
+      
+      // 5. Scene-Specific Kinetic Motions
+      if ('{s_id}' === 'scene_001') {{
+        // Clock dynamic count
+        const sec = Math.floor(currentTime * 12);
+        const m2 = document.getElementById('clock-01-m2');
+        const m1 = document.getElementById('clock-01-m1');
+        if (m2) m2.innerText = (sec % 10);
+        if (m1) m1.innerText = Math.floor((sec / 10) % 6);
+      }}
+      else if ('{s_id}' === 'scene_003') {{
+        // Stomach Gastric Acid Bubbling
+        for (let b = 0; b < 12; b++) {{
+          const bub = document.getElementById('acid-bub-' + b);
+          if (bub) {{
+            const cycle = (currentTime * 45 + b * 18) % 100;
+            bub.setAttribute('cy', (140 - cycle).toFixed(1));
+            bub.setAttribute('opacity', (1.0 - cycle / 100).toFixed(2));
+          }}
+        }}
+        // Clock hours count
+        const hr = Math.floor((currentTime / TOTAL_DURATION) * 2.0);
+        const h2 = document.getElementById('clock-03-h2');
+        if (h2) h2.innerText = hr;
+      }}
+      else if ('{s_id}' === 'scene_006') {{
+        // Scanning Laser Sweep
+        const laser = document.getElementById('doc-laser');
+        if (laser) {{
+          const laserP = clamp((currentTime - 0.4) / 1.8, 0, 1);
+          laser.style.top = (laserP * 560).toFixed(1) + 'px';
+          laser.style.opacity = (currentTime >= 0.4 && currentTime <= 2.4) ? '1' : '0';
+        }}
+        // Odometer Count Up to 1760 mg
+        const odoVal = document.getElementById('odo-sodium-val');
+        const odoPct = document.getElementById('odo-sodium-pct');
+        const odoBar = document.getElementById('odo-sodium-bar');
+        if (odoVal && odoPct && odoBar) {{
+          const odoP = clamp((currentTime - 0.5) / 2.2, 0, 1);
+          const easedOdo = springBounce(odoP);
+          const currentMg = Math.floor(easedOdo * 1760);
+          const currentPercent = Math.floor(easedOdo * 76);
+          odoVal.innerText = currentMg.toLocaleString();
+          odoPct.innerText = currentPercent + '%';
+          odoBar.style.width = currentPercent + '%';
+        }}
+      }}
+      else if ('{s_id}' === 'scene_007') {{
+        // Sequential badge pops
+        const b1 = document.getElementById('badge-1');
+        const b2 = document.getElementById('badge-2');
+        if (b1) {{
+          const p1 = clamp((currentTime - 0.6) / 0.3, 0, 1);
+          b1.style.transform = `scale(${{springBounce(p1).toFixed(3)}})`;
+        }}
+        if (b2) {{
+          const p2 = clamp((currentTime - 1.4) / 0.3, 0, 1);
+          b2.style.transform = `scale(${{springBounce(p2).toFixed(3)}})`;
+        }}
       }}
     }};
     window.getCurrentTime = () => currentTime;
@@ -554,6 +686,6 @@ for sc_res in aesthetic_report["scenes"]:
     print(f"          Scene {sc_res['scene_index']:02d}: {sc_res['composite_score']} pts ({sc_res['status']})")
 
 print("\n=================================================================")
-print("✅ TACTILE PHOTOGRAPHIC PAPERCRAFT STOP-MOTION PRODUCTION COMPLETE!")
+print("✅ HIGH-ENERGY KINETIC MOTION GRAPHICS REEL COMPLETE!")
 print(f"   Deliverable: {final_video}")
 print("=================================================================\n")
