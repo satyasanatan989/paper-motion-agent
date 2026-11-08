@@ -1,0 +1,142 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "PaperMotionStoryboard",
+  "description": "Validated specification for an autonomous cinematic explainer video storyboard",
+  "type": "object",
+  "required": [
+    "project_name",
+    "topic",
+    "language",
+    "aspect_ratio",
+    "resolution",
+    "fps",
+    "estimated_duration",
+    "scenes"
+  ],
+  "properties": {
+    "project_name": { "type": "string" },
+    "topic": { "type": "string" },
+    "language": { "type": "string", "enum": ["hinglish", "hindi", "english"] },
+    "genre": { "type": "string", "enum": ["science_bio", "history_epic", "technology", "finance_economy", "general_explainer"] },
+    "aspect_ratio": { "type": "string", "enum": ["9:16", "16:9", "1:1"] },
+    "resolution": {
+      "type": "object",
+      "required": ["width", "height"],
+      "properties": {
+        "width": { "type": "integer", "default": 1080 },
+        "height": { "type": "integer", "default": 1920 }
+      }
+    },
+    "fps": { "type": "integer", "enum": [30, 60], "default": 30 },
+    "estimated_duration": { "type": "number", "minimum": 5.0 },
+    "soundtrack_preset": { "type": "string", "enum": ["health_bio", "war_epic", "science_tech", "curious_explainer", "lofi_groove"] },
+    "scenes": {
+      "type": "array",
+      "minItems": 3,
+      "items": { "$ref": "#/definitions/Scene" }
+    }
+  },
+  "definitions": {
+    "Scene": {
+      "type": "object",
+      "required": [
+        "scene_id",
+        "chapter_num",
+        "title",
+        "duration",
+        "narration",
+        "visual_type",
+        "environment",
+        "camera",
+        "transition"
+      ],
+      "properties": {
+        "scene_id": { "type": "string" },
+        "chapter_num": { "type": "integer", "minimum": 1 },
+        "title": { "type": "string" },
+        "duration": { "type": "number", "minimum": 1.0 },
+        "narration": { "type": "string" },
+        "keywords": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "visual_type": {
+          "type": "string",
+          "enum": ["cinematic_2_5d", "vector_papercraft", "biological_macro", "infographic_data", "procedural_3d", "dramatic_verdict"]
+        },
+        "environment": { "type": "string" },
+        "background_tone": {
+          "type": "object",
+          "properties": {
+            "primary": { "type": "string" },
+            "secondary": { "type": "string" },
+            "vignette": { "type": "boolean", "default": true }
+          }
+        },
+        "camera": {
+          "type": "object",
+          "required": ["movement"],
+          "properties": {
+            "movement": {
+              "type": "string",
+              "enum": ["slow_dolly_in", "fast_push_in", "smooth_pull_back", "pan_left", "pan_right", "tilt_up", "tilt_down", "subtle_orbit", "static_focus"]
+            },
+            "depth_parallax": { "type": "boolean", "default": true },
+            "zoom_start": { "type": "number", "default": 1.0 },
+            "zoom_end": { "type": "number", "default": 1.08 },
+            "easing": { "type": "string", "default": "cubic_bezier" }
+          }
+        },
+        "layers": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "depth_level", "type"],
+            "properties": {
+              "name": { "type": "string" },
+              "depth_level": { "type": "string", "enum": ["background", "midground", "foreground", "overlay"] },
+              "type": { "type": "string", "enum": ["svg_vector", "particle_emitter", "html_mesh", "metric_tile", "procedural_canvas"] },
+              "content_id": { "type": "string" },
+              "animation": { "type": "string" },
+              "parallax_factor": { "type": "number", "default": 0.5 }
+            }
+          }
+        },
+        "typography": {
+          "type": "object",
+          "properties": {
+            "badge": { "type": "string" },
+            "headline_main": { "type": "string" },
+            "headline_sub": { "type": "string" },
+            "highlight_words": { "type": "array", "items": { "type": "string" } },
+            "animation": { "type": "string", "default": "word_by_word" }
+          }
+        },
+        "transition": {
+          "type": "object",
+          "required": ["type"],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": ["cinematic_zoom", "directional_wipe", "mask_reveal", "paper_tear", "light_flash", "parallax_push"]
+            },
+            "duration": { "type": "number", "default": 0.45 },
+            "direction": { "type": "string", "enum": ["left", "right", "up", "down", "center"], "default": "center" }
+          }
+        },
+        "foley": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["effect", "time_offset"],
+            "properties": {
+              "effect": { "type": "string" },
+              "time_offset": { "type": "number" },
+              "volume": { "type": "number", "default": 0.7 }
+            }
+          }
+        }
+      }
+    }
+  }
+}

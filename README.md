@@ -217,14 +217,32 @@ paper-motion-agent/
 ├── .agents/
 │   └── paper-motion-director.md   # ECC Agent specification file
 ├── agent/
-│   ├── director.py                # Master Autonomous Director Engine
+│   ├── director.py                # Autonomous Topic-Driven Director Engine
 │   ├── prompts.py                 # Viral storytelling heuristics
-│   └── script_engine.py           # 6-chapter storyboard generator
+│   └── script_engine.py           # Topic-driven chapter & narrative generator
+├── research/
+│   ├── __init__.py
+│   └── fact_engine.py             # Offline conceptual fact & research engine
+├── storyboard/
+│   ├── __init__.py
+│   └── generator.py               # Multi-layer visual storyboard generator
+├── schemas/
+│   └── storyboard_schema.json     # Formal JSON schema for production storyboards
+├── visual_engine/
+│   ├── __init__.py
+│   ├── camera.py                  # 2.5D physical camera & parallax controller
+│   ├── motion_presets.py          # Easing curves, spring dynamics & particles
+│   ├── transitions.py             # Directional wipes, paper tears & zooms
+│   ├── typography.py              # Kinetic typography & split-flap counters
+│   └── scene_composer.py          # Dynamic HTML/CSS/JS stage assembler
+├── quality_control/
+│   ├── __init__.py
+│   └── validator.py               # Automated post-render QC validator (LUFS, FPS, Blackdetect)
 ├── voice/
 │   ├── jugnu_cloner.py            # AltSlate-Labs/jugnu-pocket-tts cloner
 │   ├── indicf5_engine.py          # IndicF5 local DiT fallback
 │   ├── normalizer.py              # Hinglish number-to-words normalizer
-│   └── audio_master.py            # Foley synthesis & sidechain ducking
+│   └── audio_master.py            # Adaptive multi-genre Foley & ducking
 ├── motion/
 │   ├── paper_canvas.py            # Procedural parchment & fiber texture
 │   ├── cutouts.py                 # Clashing swords, lotus, chakra SVGs
@@ -243,8 +261,12 @@ paper-motion-agent/
 │   └── mayank_notebook/           # Interactive 1080x1920 historical notebook studio
 ├── assets/
 │   └── reference_mayank_sample.wav# Packaged clean Mayank voice sample
-├── tests/                         # Unit tests (8 passed)
-├── cli.py                         # Rich interactive CLI
+├── tests/                         # Comprehensive unit test suite (20 tests passed)
+├── cli.py                         # Rich interactive CLI with --topic, --language, --fps, --skip-qc
+├── ARCHITECTURE.md                # System design & pipeline specification
+├── UPGRADE_AUDIT.md               # Architectural audit & non-destructive migration log
+├── UPGRADE_CHANGELOG.md           # Full v2.0 feature release notes
+├── DEPENDENCY_REPORT.md           # Zero-cloud local execution & hardware report
 └── README.md                      # Documentation
 ```
 

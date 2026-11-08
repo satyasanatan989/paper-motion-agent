@@ -150,3 +150,105 @@ class AudioMasterEngine:
             temp_bgm_wav.unlink(missing_ok=True)
 
         return output_mp3
+
+    def generate_adaptive_bgm(self, duration: float, genre: str = "health_bio") -> np.ndarray:
+        """
+        Synthesizes genre-aware Foley and musical foundations:
+        - 'health_bio': Lo-fi analog sub-bass, 38 Hz gut rumble, rhythmic acoustic click
+        - 'war_epic': Deep Nagada war drums + meditative Bansuri flute
+        - 'science_tech': Minimal ambient drone + crisp synthetic pulses
+        """
+        if genre == "war_epic" or "history" in genre:
+            return self.generate_cinematic_bgm(duration, has_war_transition=True)
+
+        num_samples = int(self.sr * duration)
+        t = np.linspace(0, duration, num_samples, False)
+        bgm = np.zeros(num_samples, dtype=np.float32)
+
+        # 1. Warm Analog Foundation
+        bass_drone = np.sin(2 * np.pi * 52 * t) * 0.10 + np.sin(2 * np.pi * 104 * t) * 0.06
+        bgm += bass_drone
+
+        # 2. Rhythmic Pulse (~108 BPM, 0.55s interval)
+        beat_times = np.arange(0.1, duration, 0.55)
+        for b_idx, b_t in enumerate(beat_times):
+            idx = int(b_t * self.sr)
+            is_kick = (b_idx % 4 == 0)
+            hit_dur = 0.32 if is_kick else 0.14
+            hit_samples = int(hit_dur * self.sr)
+            if idx + hit_samples < num_samples:
+                ht = np.linspace(0, hit_dur, hit_samples, False)
+                if is_kick:
+                    freq = 45 + 70 * np.exp(-ht * 22)
+                    phase = 2 * np.pi * np.cumsum(freq) / self.sr
+                    kick = np.sin(phase) * np.exp(-ht * 12) * 0.28
+                    bgm[idx:idx + hit_samples] += kick
+                else:
+                    wood_click = (np.sin(2 * np.pi * 840 * ht) + np.sin(2 * np.pi * 1420 * ht)) * np.exp(-ht * 35) * 0.08
+                    bgm[idx:idx + hit_samples] += wood_click
+
+        # 3. Sub-bass Gut Rumble (for biological health explainers)
+        if "bio" in genre or "health" in genre:
+            rumble_times = [duration * 0.35, duration * 0.52]
+            for r_t in rumble_times:
+                r_idx = int(r_t * self.sr)
+                r_dur = 2.2
+                r_samples = int(r_dur * self.sr)
+                if r_idx + r_samples < num_samples:
+                    rt = np.linspace(0, r_dur, r_samples, False)
+                    sub = np.sin(2 * np.pi * 38 * rt) * np.exp(-rt * 1.1) * 0.26
+                    fizz = (np.random.rand(r_samples) - 0.5) * 0.10 * (1.0 - np.exp(-rt * 1.5))
+                    bgm[r_idx:r_idx + r_samples] += (sub + fizz)
+
+        # Normalize
+        max_val = np.max(np.abs(bgm))
+        if max_val > 0:
+            bgm = (bgm / max_val) * 0.80
+        return bgm
+
+    def mix_soundtrack_with_ducking_adaptive(
+        self,
+        voiceover_wav: Union[str, Path],
+        output_mp3: Union[str, Path],
+        genre: str = "health_bio",
+        bgm_volume: float = 0.20,
+        ducking_ratio: float = 0.35
+    ) -> Path:
+        """
+        Dynamically mixes voiceover with genre-tailored BGM and sidechain ducking.
+        """
+        voiceover_wav = Path(voiceover_wav)
+        output_mp3 = Path(output_mp3)
+        output_mp3.parent.mkdir(parents=True, exist_ok=True)
+
+        v_data, v_sr = sf.read(str(voiceover_wav))
+        duration = len(v_data) / v_sr
+
+        bgm_data = self.generate_adaptive_bgm(duration + 0.8, genre=genre)
+        temp_bgm_wav = output_mp3.parent / "temp_adaptive_bgm.wav"
+        sf.write(str(temp_bgm_wav), bgm_data, self.sr)
+
+        cmd = [
+            "ffmpeg", "-y",
+            "-i", str(temp_bgm_wav),
+            "-i", str(voiceover_wav),
+            "-filter_complex",
+            f"[0:a]volume={bgm_volume}[bgm];"
+            f"[bgm][1:a]sidechaincompress=threshold=0.08:ratio=4:attack=50:release=350[ducked_bgm];"
+            f"[ducked_bgm][1:a]amix=inputs=2:duration=first:dropout_transition=2[outa]",
+            "-map", "[outa]",
+            "-b:a", "192k",
+            str(output_mp3)
+        ]
+        res = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        if res.returncode != 0:
+            mixed = np.zeros(len(v_data), dtype=np.float32)
+            bgm_resampled = bgm_data[:len(v_data)]
+            mixed = (v_data * 0.95) + (bgm_resampled * bgm_volume * ducking_ratio)
+            sf.write(str(output_mp3.with_suffix(".wav")), mixed, v_sr)
+            return output_mp3.with_suffix(".wav")
+
+        if temp_bgm_wav.exists():
+            temp_bgm_wav.unlink(missing_ok=True)
+
+        return output_mp3
