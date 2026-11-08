@@ -1,0 +1,28 @@
+{
+  "name": "paper-motion-agent",
+  "version": "1.0.0",
+  "description": "Headless Chrome DevTools Protocol & Remotion Motion Graphics Engine for Papercraft Explainers",
+  "main": "pipeline/render.js",
+  "scripts": {
+    "render": "node pipeline/render.js",
+    "preview": "npx serve templates/mayank_notebook -l 3456",
+    "test": "node tests/test_headless.js"
+  },
+  "keywords": [
+    "motion-graphics",
+    "remotion",
+    "hyperframes",
+    "cdp",
+    "papercraft",
+    "viral-video",
+    "ffmpeg"
+  ],
+  "author": "PaperMotion AI Contributors",
+  "license": "MIT",
+  "dependencies": {
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "serve": "^14.2.4"
+  }
+}

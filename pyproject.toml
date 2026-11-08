@@ -1,0 +1,74 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "paper-motion-agent"
+version = "1.0.0"
+description = "Autonomous ECC Agent for MeanwhileMayank / Vox style viral vertical explainers with Jugnu Hinglish Voice Cloning & 60 FPS Papercraft Motion Graphics"
+readme = "README.md"
+authors = [
+    { name = "PaperMotion AI Contributors" }
+]
+license = { text = "MIT" }
+requires-python = ">=3.10"
+keywords = [
+    "ai-agent",
+    "motion-graphics",
+    "video-generation",
+    "voice-cloning",
+    "hinglish-tts",
+    "remotion",
+    "pocket-tts",
+    "meanwhile-mayank",
+    "vox-style",
+    "ffmpeg",
+    "ecc"
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Content Creators",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Multimedia :: Video",
+    "Topic :: Multimedia :: Sound/Audio :: Speech",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence"
+]
+dependencies = [
+    "numpy>=1.24.0",
+    "scipy>=1.10.0",
+    "huggingface_hub>=0.23.0",
+    "safetensors>=0.4.0",
+    "pyyaml>=6.0",
+    "torch>=2.0.0",
+    "soundfile>=0.12.0",
+    "rich>=13.0.0",
+    "click>=8.1.0"
+]
+
+[project.optional-dependencies]
+jugnu = [
+    "pocket-tts",
+    "torchaudio"
+]
+indicf5 = [
+    "vocos>=0.1.0",
+    "f5-tts"
+]
+all = [
+    "pocket-tts",
+    "torchaudio",
+    "vocos>=0.1.0",
+    "f5-tts"
+]
+
+[project.scripts]
+papermotion = "cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["agent*", "voice*", "motion*", "pipeline*"]
