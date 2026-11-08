@@ -39,6 +39,35 @@ Traditional AI video generators create **robotic slideshows with lifeless synthe
 
 ---
 
+## 🎬 Showcase & Pre-Rendered Samples
+
+To demonstrate PaperMotion's dynamic range across different storytelling genres, this repository ships with pre-rendered master samples:
+
+### Sample 1: Health & Biological Explainer — *How Maida Causes Acidity & Indigestion*
+> **Format**: 9:16 Vertical ($1080 \times 1920$), 30 FPS · **Duration**: 62.60s · **File**: [`samples/maida_indigestion_explainer.mp4`](samples/maida_indigestion_explainer.mp4)  
+> **Voiceover**: Fluent conversational Hinglish with accurate food & bio-terminology  
+> **Soundtrack**: Deep $38\text{ Hz}$ gut rumbles, acid boiling, samosa frying sizzle, and split-flap mechanical gear clicks  
+
+| Chapter 1: The 2-Hour Trap | Chapter 2: Stripping the Grain | Chapter 3: Gut Glue Matrix |
+| :---: | :---: | :---: |
+| ![Ch1](samples/previews/ch1_samosa_trap.png) | ![Ch2](samples/previews/ch2_stripping_grain.png) | ![Ch3](samples/previews/ch3_gut_glue_matrix.png) |
+| *Pizza, samosa & flame surge* | *Wheat kernel bran/germ peel* | *Gluten starch adhesion* |
+
+| Chapter 4: Acid Surge | Chapter 5: 50-Hour Transit | Chapter 6: Final Verdict |
+| :---: | :---: | :---: |
+| ![Ch4](samples/previews/ch4_acid_surge.png) | ![Ch5](samples/previews/ch5_50hr_clock.png) | ![Ch6](samples/previews/ch6_final_verdict.png) |
+| *pH 1.5 corrosive overflow* | *24h vs 54h mechanical clock* | *Gold-leaf embossed verdict* |
+
+---
+
+### Sample 2: Historical Epic Documentary — *Samrat Ashoka & The Kalinga War*
+> **Format**: 9:16 Vertical ($1080 \times 1920$), 30 FPS · **Duration**: 22.31s · **File**: [`samples/ashoka_documentary.mp4`](samples/ashoka_documentary.mp4)  
+> **Voiceover**: Cloned voice with MeanwhileMayank dramatic pacing  
+> **Visuals**: Animated clashing swords with kinetic sparks, antique mechanical casualty flip-counter (`100K+`), and rotating 24-spoke mathematical Chakra  
+
+
+---
+
 ## 🏛️ Autonomous Agent Architecture (ECC Native)
 
 ```mermaid
@@ -204,8 +233,14 @@ paper-motion-agent/
 ├── pipeline/
 │   ├── cdp_streamer.py            # Python CDP controller
 │   └── render.js                  # Node.js WebSocket memory pipe renderer
+├── samples/                       # Pre-rendered showcase master videos & assets
+│   ├── maida_indigestion_explainer.mp4 # 62.60s Health & Science sample
+│   ├── ashoka_documentary.mp4     # 22.31s Historical Epic sample
+│   ├── maida_soundtrack.mp3       # Mixed Hinglish audio with Foley BGM
+│   └── previews/                  # Extracted chapter preview PNGs
 ├── templates/
-│   └── mayank_notebook/           # Interactive 1080x1920 web-to-video studio
+│   ├── health_explainer/          # 6-chapter biology/food anatomy papercraft
+│   └── mayank_notebook/           # Interactive 1080x1920 historical notebook studio
 ├── assets/
 │   └── reference_mayank_sample.wav# Packaged clean Mayank voice sample
 ├── tests/                         # Unit tests (8 passed)

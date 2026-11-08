@@ -1,0 +1,279 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Bebas+Neue&family=Rozha+One&family=JetBrains+Mono:wght@500;700&family=Montserrat:wght@400;600;800&display=swap');
+
+:root {
+  --bg-parchment: #F4EAD4;
+  --bg-parchment-dark: #E2D3B8;
+  --ink-primary: #1E1712;
+  --ink-secondary: #4A3C31;
+  --ink-muted: #7A695A;
+  --accent-gold: #C69214;
+  --accent-gold-light: #ECC94B;
+  --accent-crimson: #8C1D24;
+  --accent-acid: #38A169;
+  --accent-acid-hot: #E53E3E;
+  --accent-blue: #2B6CB0;
+  --paper-cutout: drop-shadow(0 14px 22px rgba(25, 18, 12, 0.45)) drop-shadow(0 3px 6px rgba(25, 18, 12, 0.3));
+  --paper-cutout-sm: drop-shadow(0 6px 12px rgba(25, 18, 12, 0.35));
+  --paper-cutout-glow: drop-shadow(0 0 20px rgba(229, 62, 62, 0.6)) drop-shadow(0 8px 16px rgba(0,0,0,0.4));
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  background-color: #0E0B08;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  font-family: 'Montserrat', sans-serif;
+  color: var(--ink-primary);
+}
+
+#stage-container {
+  position: relative;
+  width: 1080px;
+  height: 1920px;
+  background-color: var(--bg-parchment);
+  overflow: hidden;
+  box-shadow: 0 0 80px rgba(0, 0, 0, 0.9);
+}
+
+/* Background Parchment Canvas */
+.parchment-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1080px;
+  height: 1920px;
+  z-index: 1;
+}
+
+/* Center Scroll / Book Spine Crease */
+.scroll-spine {
+  position: absolute;
+  top: 0;
+  left: 537px;
+  width: 6px;
+  height: 1920px;
+  background: linear-gradient(to right, rgba(0,0,0,0.22), rgba(0,0,0,0.02) 40%, rgba(255,255,255,0.15) 60%, rgba(0,0,0,0.25));
+  z-index: 5;
+  pointer-events: none;
+  opacity: 0.75;
+}
+
+/* Scorched Edge Vignette */
+.scorched-border {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1080px;
+  height: 1920px;
+  box-shadow: inset 0 0 120px 40px rgba(35, 20, 10, 0.75), inset 0 0 40px 10px rgba(15, 8, 4, 0.95);
+  z-index: 6;
+  pointer-events: none;
+}
+
+/* Content Container */
+.content-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1080px;
+  height: 1920px;
+  z-index: 10;
+}
+
+/* Scene Setup */
+.scene {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1080px;
+  height: 1920px;
+  padding: 120px 80px 100px 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  opacity: 0;
+  transform: scale(0.97) translateY(20px);
+  transition: opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1), transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+}
+
+.scene.active {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+  pointer-events: auto;
+}
+
+body.render-mode .scene {
+  transition: none !important;
+}
+
+/* Chapter Pill Badge */
+.chapter-badge {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #FFFDF7;
+  background: var(--ink-primary);
+  padding: 12px 30px;
+  border-radius: 999px;
+  box-shadow: var(--paper-cutout-sm);
+  border: 2px solid var(--accent-gold);
+  margin-bottom: 30px;
+}
+
+/* Typography Hierarchy */
+.headline-wrap {
+  text-align: center;
+  margin-bottom: 35px;
+}
+
+.headline-sub {
+  font-family: 'Cinzel', serif;
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: 0.28em;
+  color: var(--accent-crimson);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.headline-main {
+  font-family: 'Bebas Neue', 'Rozha One', sans-serif;
+  font-size: 78px;
+  line-height: 0.95;
+  letter-spacing: 0.04em;
+  color: var(--ink-primary);
+  text-shadow: 2px 3px 0px rgba(255, 255, 255, 0.6);
+}
+
+/* Visual Stage */
+.visual-stage {
+  position: relative;
+  width: 920px;
+  height: 1040px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Tactile Paper Cards */
+.paper-card {
+  background: #FFFDF8;
+  border-radius: 18px;
+  padding: 30px 40px;
+  border: 3px solid #D6C29E;
+  filter: var(--paper-cutout);
+  position: relative;
+}
+
+.paper-card::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: repeating-linear-gradient(45deg, rgba(200, 170, 130, 0.05), rgba(200, 170, 130, 0.05) 10px, transparent 10px, transparent 20px);
+  pointer-events: none;
+  border-radius: 15px;
+}
+
+/* Metric / Split-Flap Counter */
+.metric-box {
+  width: 780px;
+  margin-top: 35px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.metric-title {
+  font-family: 'Cinzel', serif;
+  font-size: 20px;
+  letter-spacing: 0.22em;
+  color: var(--ink-muted);
+  font-weight: 700;
+  margin-bottom: 14px;
+}
+
+.flip-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.flip-tile {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 64px;
+  font-weight: 900;
+  color: #FFFDF7;
+  background: #1C1510;
+  padding: 8px 24px;
+  border-radius: 10px;
+  border: 3px solid #CCA876;
+  box-shadow: inset 0 -4px 0 rgba(0,0,0,0.5), 0 8px 16px rgba(0,0,0,0.3);
+  position: relative;
+  min-width: 80px;
+  text-align: center;
+}
+
+.flip-tile::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: rgba(0,0,0,0.7);
+}
+
+.metric-sub {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--accent-crimson);
+  letter-spacing: 0.1em;
+  margin-top: 14px;
+  text-align: center;
+}
+
+/* Subtitle Streamer Bar at Bottom */
+.caption-streamer {
+  position: absolute;
+  bottom: 80px;
+  left: 70px;
+  right: 70px;
+  background: rgba(24, 18, 14, 0.92);
+  border: 2px solid var(--accent-gold);
+  border-radius: 16px;
+  padding: 22px 32px;
+  text-align: center;
+  filter: var(--paper-cutout);
+  z-index: 20;
+}
+
+.caption-text {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.4;
+  color: #FFFDF8;
+}
+
+.caption-text span.highlight {
+  color: var(--accent-gold-light);
+  background: rgba(198, 146, 20, 0.25);
+  padding: 2px 8px;
+  border-radius: 6px;
+}

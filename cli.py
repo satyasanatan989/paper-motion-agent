@@ -50,12 +50,13 @@ def generate(topic, ref, output, fps, token):
     console.print(f"\n[bold green]✔ Successfully created master video:[/bold green] [bold underline]{final_video}[/bold underline]")
 
 @cli.command()
+@click.option('--template', default="health_explainer", type=click.Choice(['health_explainer', 'mayank_notebook']), help="Template to preview ('health_explainer' or 'mayank_notebook').")
 @click.option('--port', default=3456, help="Port to host interactive browser preview.")
-def preview(port):
+def preview(template, port):
     """Launch interactive browser studio for live timeline scrubbing."""
     import subprocess
-    console.print(f"[bold cyan]Opening Interactive Studio at http://localhost:{port}/index.html ...[/bold cyan]")
-    template_dir = Path(__file__).parent / "templates" / "mayank_notebook"
+    console.print(f"[bold cyan]Opening Interactive Studio for '{template}' at http://localhost:{port}/index.html ...[/bold cyan]")
+    template_dir = Path(__file__).parent / "templates" / template
     try:
         subprocess.run(["npx", "serve", str(template_dir), "-l", str(port)])
     except KeyboardInterrupt:

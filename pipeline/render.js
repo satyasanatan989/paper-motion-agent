@@ -91,9 +91,13 @@ async function main() {
     WebSocket = require('ws');
   } catch (e) {
     try {
-      WebSocket = require(path.join(__dirname, '..', '..', 'ECC', 'node_modules', 'ws'));
-    } catch (e2) {
-      throw new Error("Package 'ws' not found. Run 'pnpm install' or 'npm install ws'");
+      WebSocket = require(path.join(__dirname, '..', '..', 'local-code-video-system', 'node_modules', 'ws'));
+    } catch (e1) {
+      try {
+        WebSocket = require(path.join(__dirname, '..', '..', 'ECC', 'node_modules', 'ws'));
+      } catch (e2) {
+        throw new Error("Package 'ws' not found. Run 'pnpm install' or 'npm install ws'");
+      }
     }
   }
 
