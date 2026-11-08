@@ -1,0 +1,62 @@
+{
+  "sample_rate": 48000,
+  "voice_synthesis": {
+    "engine_order": ["jugnu_pocket_tts", "indicf5_dit", "edge_tts_madhur"],
+    "voice_character": "Madhur / Mayank Hinglish Cloned Narrative",
+    "speed_multiplier": 1.05
+  },
+  "soundtrack_design": {
+    "target_lufs": -14.0,
+    "sidechain_ducking_attenuation_db": -16.0,
+    "foley_cues": [
+      {
+        "scene_id": "scene_001",
+        "time_start": 0.0,
+        "effect": "boiling_water_simmer_and_bass_drop",
+        "volume": 0.75
+      },
+      {
+        "scene_id": "scene_002",
+        "time_start": 5.0,
+        "effect": "soft_chewing_and_salivary_clicks",
+        "volume": 0.45
+      },
+      {
+        "scene_id": "scene_003",
+        "time_start": 10.0,
+        "effect": "deep_gastric_peristalsis_rumble",
+        "volume": 0.65
+      },
+      {
+        "scene_id": "scene_004",
+        "time_start": 15.0,
+        "effect": "microscopic_enzyme_cleavage_pulses",
+        "volume": 0.55
+      },
+      {
+        "scene_id": "scene_005",
+        "time_start": 20.0,
+        "effect": "vascular_fluid_capillary_rush",
+        "volume": 0.50
+      },
+      {
+        "scene_id": "scene_006",
+        "time_start": 25.0,
+        "effect": "digital_nutrition_infographic_ticks",
+        "volume": 0.70
+      },
+      {
+        "scene_id": "scene_007",
+        "time_start": 30.0,
+        "effect": "crisp_vegetable_egg_drop_foley",
+        "volume": 0.60
+      },
+      {
+        "scene_id": "scene_008",
+        "time_start": 35.0,
+        "effect": "cinematic_brand_signature_impact",
+        "volume": 0.85
+      }
+    ]
+  }
+}

@@ -1,0 +1,632 @@
+{
+  "project_name": "instant_noodles_001",
+  "topic": "What Happens When You Eat Instant Noodles?",
+  "language": "hinglish",
+  "genre": "science_bio",
+  "aspect_ratio": "9:16",
+  "resolution": {
+    "width": 1080,
+    "height": 1920
+  },
+  "fps": 30,
+  "estimated_duration": 57.46,
+  "soundtrack_preset": "health_bio",
+  "scenes": [
+    {
+      "scene_id": "scene_001",
+      "chapter_num": 1,
+      "title": "The Hook",
+      "duration": 4.91,
+      "narration": "Ek packet instant noodles khate hi body mein kya hota hai?",
+      "visual_type": "cinematic_2_5d",
+      "environment": "Boiling Broth Dark Kitchen",
+      "background_tone": {
+        "primary": "#111111",
+        "secondary": "#1A140E",
+        "vignette": true
+      },
+      "camera": {
+        "movement": "fast_push_in",
+        "depth_parallax": true,
+        "zoom_start": 1.0,
+        "zoom_end": 1.15,
+        "easing": "cubic_bezier"
+      },
+      "layers": [
+        {
+          "name": "charcoal_void",
+          "depth_level": "background",
+          "type": "procedural_canvas",
+          "content_id": "bg_void",
+          "animation": "subtle_drift",
+          "parallax_factor": 0.1
+        },
+        {
+          "name": "boiling_pot_noodles",
+          "depth_level": "midground",
+          "type": "svg_vector",
+          "content_id": "noodle_block_pot",
+          "animation": "hover_breathe",
+          "parallax_factor": 0.5
+        },
+        {
+          "name": "rising_steam_particles",
+          "depth_level": "foreground",
+          "type": "particle_emitter",
+          "content_id": "steam_cloud",
+          "animation": "upward_drift",
+          "parallax_factor": 0.8
+        }
+      ],
+      "typography": {
+        "badge": "FOOD CODE \u2022 01",
+        "headline_main": "WHAT HAPPENS INSIDE YOU?",
+        "headline_sub": "SCENE 01 \u2022 THE HOOK",
+        "highlight_words": [
+          "INSIDE",
+          "YOU",
+          "instant",
+          "noodles"
+        ],
+        "animation": "word_by_word"
+      },
+      "transition": {
+        "type": "directional_wipe",
+        "duration": 0.45,
+        "direction": "center"
+      },
+      "foley": [
+        {
+          "effect": "boiling_water_simmer_and_bass_drop",
+          "time_offset": 0.2,
+          "volume": 0.75
+        }
+      ],
+      "keywords": [
+        "instant",
+        "noodles",
+        "body",
+        "khate"
+      ]
+    },
+    {
+      "scene_id": "scene_002",
+      "chapter_num": 2,
+      "title": "The Mouth & Starch",
+      "duration": 6.61,
+      "narration": "Sabse pehle, mouth mein chewing ke saath saliva starch ko break karna shuru karta hai.",
+      "visual_type": "biological_macro",
+      "environment": "Oral Cavity Micro Anatomy",
+      "background_tone": {
+        "primary": "#111111",
+        "secondary": "#1C120C",
+        "vignette": true
+      },
+      "camera": {
+        "movement": "pan_right",
+        "depth_parallax": true,
+        "zoom_start": 1.0,
+        "zoom_end": 1.08,
+        "easing": "cubic_bezier"
+      },
+      "layers": [
+        {
+          "name": "oral_cavity_cutaway",
+          "depth_level": "background",
+          "type": "html_mesh",
+          "content_id": "oral_bg",
+          "animation": "subtle_drift",
+          "parallax_factor": 0.1
+        },
+        {
+          "name": "starch_amylose_chain",
+          "depth_level": "midground",
+          "type": "svg_vector",
+          "content_id": "starch_chain_svg",
+          "animation": "hover_breathe",
+          "parallax_factor": 0.5
+        },
+        {
+          "name": "amylase_enzyme_shears",
+          "depth_level": "foreground",
+          "type": "svg_vector",
+          "content_id": "amylase_cut",
+          "animation": "pulse_glow",
+          "parallax_factor": 0.9
+        }
+      ],
+      "typography": {
+        "badge": "FOOD CODE \u2022 02",
+        "headline_main": "STARCH DIGESTION STARTS HERE",
+        "headline_sub": "SCENE 02 \u2022 ORAL CAVITY",
+        "highlight_words": [
+          "STARCH",
+          "DIGESTION",
+          "saliva",
+          "chewing"
+        ],
+        "animation": "word_by_word"
+      },
+      "transition": {
+        "type": "directional_wipe",
+        "duration": 0.4,
+        "direction": "left"
+      },
+      "foley": [
+        {
+          "effect": "soft_chewing_and_salivary_clicks",
+          "time_offset": 0.3,
+          "volume": 0.45
+        }
+      ],
+      "keywords": [
+        "mouth",
+        "chewing",
+        "saliva",
+        "starch"
+      ]
+    },
+    {
+      "scene_id": "scene_003",
+      "chapter_num": 3,
+      "title": "The Stomach",
+      "duration": 6.75,
+      "narration": "Phir food stomach mein jaata hai, jahaan muscles aur digestive juices ise mix karte hain.",
+      "visual_type": "biological_macro",
+      "environment": "Gastric Muscular Chamber",
+      "background_tone": {
+        "primary": "#111111",
+        "secondary": "#240C0F",
+        "vignette": true
+      },
+      "camera": {
+        "movement": "tilt_down",
+        "depth_parallax": true,
+        "zoom_start": 1.0,
+        "zoom_end": 1.1,
+        "easing": "cubic_bezier"
+      },
+      "layers": [
+        {
+          "name": "gastric_rugae_mesh",
+          "depth_level": "background",
+          "type": "html_mesh",
+          "content_id": "stomach_rugae",
+          "animation": "subtle_drift",
+          "parallax_factor": 0.1
+        },
+        {
+          "name": "stomach_organ_vector",
+          "depth_level": "midground",
+          "type": "svg_vector",
+          "content_id": "stomach_anatomy",
+          "animation": "peristalsis_wave",
+          "parallax_factor": 0.5
+        },
+        {
+          "name": "digestive_fluid_swirl",
+          "depth_level": "foreground",
+          "type": "particle_emitter",
+          "content_id": "acid_swirl",
+          "animation": "liquid_churn",
+          "parallax_factor": 0.85
+        }
+      ],
+      "typography": {
+        "badge": "FOOD CODE \u2022 03",
+        "headline_main": "MIX. BREAK DOWN. MOVE ON.",
+        "headline_sub": "SCENE 03 \u2022 GASTRIC CHURN",
+        "highlight_words": [
+          "MIX",
+          "BREAK",
+          "stomach",
+          "muscles"
+        ],
+        "animation": "word_by_word"
+      },
+      "transition": {
+        "type": "directional_wipe",
+        "duration": 0.4,
+        "direction": "up"
+      },
+      "foley": [
+        {
+          "effect": "deep_gastric_peristalsis_rumble",
+          "time_offset": 0.2,
+          "volume": 0.65
+        }
+      ],
+      "keywords": [
+        "food",
+        "stomach",
+        "muscles",
+        "digestive"
+      ]
+    },
+    {
+      "scene_id": "scene_004",
+      "chapter_num": 4,
+      "title": "Small Intestine",
+      "duration": 6.37,
+      "narration": "Small intestine mein enzymes carbohydrates ko aur chhote sugars mein todte hain.",
+      "visual_type": "biological_macro",
+      "environment": "Duodenal Enzyme Space",
+      "background_tone": {
+        "primary": "#111111",
+        "secondary": "#1A140E",
+        "vignette": true
+      },
+      "camera": {
+        "movement": "pan_left",
+        "depth_parallax": true,
+        "zoom_start": 1.0,
+        "zoom_end": 1.12,
+        "easing": "cubic_bezier"
+      },
+      "layers": [
+        {
+          "name": "luminal_fluid_canvas",
+          "depth_level": "background",
+          "type": "procedural_canvas",
+          "content_id": "lumen_bg",
+          "animation": "subtle_drift",
+          "parallax_factor": 0.1
+        },
+        {
+          "name": "carbohydrate_cleavage_svg",
+          "depth_level": "midground",
+          "type": "svg_vector",
+          "content_id": "sugar_cleave",
+          "animation": "hover_breathe",
+          "parallax_factor": 0.5
+        },
+        {
+          "name": "enzyme_lock_key",
+          "depth_level": "foreground",
+          "type": "svg_vector",
+          "content_id": "pancreatic_amylase",
+          "animation": "pulse_glow",
+          "parallax_factor": 0.8
+        }
+      ],
+      "typography": {
+        "badge": "FOOD CODE \u2022 04",
+        "headline_main": "STARCH \u2192 SMALLER SUGARS",
+        "headline_sub": "SCENE 04 \u2022 SMALL INTESTINE",
+        "highlight_words": [
+          "SMALLER",
+          "SUGARS",
+          "enzymes",
+          "carbohydrates"
+        ],
+        "animation": "word_by_word"
+      },
+      "transition": {
+        "type": "directional_wipe",
+        "duration": 0.4,
+        "direction": "right"
+      },
+      "foley": [
+        {
+          "effect": "microscopic_enzyme_cleavage_pulses",
+          "time_offset": 0.3,
+          "volume": 0.55
+        }
+      ],
+      "keywords": [
+        "Small",
+        "intestine",
+        "enzymes",
+        "carbohydrates"
+      ]
+    },
+    {
+      "scene_id": "scene_005",
+      "chapter_num": 5,
+      "title": "Nutrient Absorption",
+      "duration": 9.54,
+      "narration": "Ye nutrients absorb hokar bloodstream tak pahunchte hain. Glucose body energy ke liye use ya store kar sakti hai.",
+      "visual_type": "biological_macro",
+      "environment": "Villi & Capillary Bloodstream",
+      "background_tone": {
+        "primary": "#111111",
+        "secondary": "#2A1014",
+        "vignette": true
+      },
+      "camera": {
+        "movement": "fast_push_in",
+        "depth_parallax": true,
+        "zoom_start": 1.0,
+        "zoom_end": 1.14,
+        "easing": "cubic_bezier"
+      },
+      "layers": [
+        {
+          "name": "villi_epithelium_wall",
+          "depth_level": "background",
+          "type": "html_mesh",
+          "content_id": "villi_wall",
+          "animation": "subtle_drift",
+          "parallax_factor": 0.15
+        },
+        {
+          "name": "bloodstream_capillary_svg",
+          "depth_level": "midground",
+          "type": "svg_vector",
+          "content_id": "bloodstream_rbc",
+          "animation": "blood_flow",
+          "parallax_factor": 0.5
+        },
+        {
+          "name": "glucose_transport_rings",
+          "depth_level": "foreground",
+          "type": "particle_emitter",
+          "content_id": "glucose_cross",
+          "animation": "transporter_flow",
+          "parallax_factor": 0.85
+        }
+      ],
+      "typography": {
+        "badge": "FOOD CODE \u2022 05",
+        "headline_main": "ABSORBED \u2192 USED OR STORED",
+        "headline_sub": "SCENE 05 \u2022 ABSORPTION",
+        "highlight_words": [
+          "ABSORBED",
+          "STORED",
+          "bloodstream",
+          "Glucose"
+        ],
+        "animation": "word_by_word"
+      },
+      "transition": {
+        "type": "directional_wipe",
+        "duration": 0.4,
+        "direction": "center"
+      },
+      "foley": [
+        {
+          "effect": "vascular_fluid_capillary_rush",
+          "time_offset": 0.2,
+          "volume": 0.5
+        }
+      ],
+      "keywords": [
+        "nutrients",
+        "absorb",
+        "bloodstream",
+        "Glucose"
+      ]
+    },
+    {
+      "scene_id": "scene_006",
+      "chapter_num": 6,
+      "title": "The Sodium Factor",
+      "duration": 9.75,
+      "narration": "Lekin ek aur cheez important hai \u2014 sodium! Instant noodles mein sodium ka amount brand aur flavour ke hisaab se badalta hai.",
+      "visual_type": "infographic_data",
+      "environment": "Nutrition Facts Tech Studio",
+      "background_tone": {
+        "primary": "#111111",
+        "secondary": "#1E1710",
+        "vignette": true
+      },
+      "camera": {
+        "movement": "smooth_pull_back",
+        "depth_parallax": true,
+        "zoom_start": 1.18,
+        "zoom_end": 1.0,
+        "easing": "cubic_bezier"
+      },
+      "layers": [
+        {
+          "name": "studio_grid_backdrop",
+          "depth_level": "background",
+          "type": "html_mesh",
+          "content_id": "grid_bg",
+          "animation": "subtle_drift",
+          "parallax_factor": 0.1
+        },
+        {
+          "name": "nutrition_label_board",
+          "depth_level": "midground",
+          "type": "svg_vector",
+          "content_id": "nutrition_facts_svg",
+          "animation": "hover_breathe",
+          "parallax_factor": 0.5
+        },
+        {
+          "name": "sodium_highlight_flare",
+          "depth_level": "foreground",
+          "type": "html_mesh",
+          "content_id": "sodium_glow",
+          "animation": "pulse_heat",
+          "parallax_factor": 0.9
+        }
+      ],
+      "typography": {
+        "badge": "FOOD CODE \u2022 06",
+        "headline_main": "CHECK THE SODIUM",
+        "headline_sub": "SCENE 06 \u2022 NUTRITION LABEL",
+        "highlight_words": [
+          "SODIUM",
+          "brand",
+          "flavour",
+          "important"
+        ],
+        "animation": "word_by_word"
+      },
+      "transition": {
+        "type": "directional_wipe",
+        "duration": 0.45,
+        "direction": "right"
+      },
+      "foley": [
+        {
+          "effect": "digital_nutrition_infographic_ticks",
+          "time_offset": 0.3,
+          "volume": 0.7
+        }
+      ],
+      "keywords": [
+        "sodium",
+        "amount",
+        "brand",
+        "flavour"
+      ]
+    },
+    {
+      "scene_id": "scene_007",
+      "chapter_num": 7,
+      "title": "A More Balanced Bowl",
+      "duration": 7.74,
+      "narration": "Isliye packet ka nutrition label check karo, aur vegetables aur protein add karke meal ko more balanced banao.",
+      "visual_type": "cinematic_2_5d",
+      "environment": "Culinary Kitchen Studio",
+      "background_tone": {
+        "primary": "#111111",
+        "secondary": "#1A150F",
+        "vignette": true
+      },
+      "camera": {
+        "movement": "subtle_orbit",
+        "depth_parallax": true,
+        "zoom_start": 1.0,
+        "zoom_end": 1.06,
+        "easing": "cubic_bezier"
+      },
+      "layers": [
+        {
+          "name": "warm_wood_table",
+          "depth_level": "background",
+          "type": "procedural_canvas",
+          "content_id": "table_bg",
+          "animation": "subtle_drift",
+          "parallax_factor": 0.1
+        },
+        {
+          "name": "noodle_bowl_assembly",
+          "depth_level": "midground",
+          "type": "svg_vector",
+          "content_id": "balanced_bowl_svg",
+          "animation": "assemble_drop",
+          "parallax_factor": 0.5
+        },
+        {
+          "name": "culinary_aroma_steam",
+          "depth_level": "foreground",
+          "type": "particle_emitter",
+          "content_id": "steam_food",
+          "animation": "upward_drift",
+          "parallax_factor": 0.8
+        }
+      ],
+      "typography": {
+        "badge": "FOOD CODE \u2022 07",
+        "headline_main": "MAKE IT MORE BALANCED",
+        "headline_sub": "SCENE 07 \u2022 NUTRITIONAL BALANCE",
+        "highlight_words": [
+          "BALANCED",
+          "vegetables",
+          "protein",
+          "label"
+        ],
+        "animation": "word_by_word"
+      },
+      "transition": {
+        "type": "directional_wipe",
+        "duration": 0.4,
+        "direction": "left"
+      },
+      "foley": [
+        {
+          "effect": "crisp_vegetable_egg_drop_foley",
+          "time_offset": 0.3,
+          "volume": 0.6
+        }
+      ],
+      "keywords": [
+        "nutrition",
+        "label",
+        "vegetables",
+        "protein"
+      ]
+    },
+    {
+      "scene_id": "scene_008",
+      "chapter_num": 8,
+      "title": "Final Takeaway",
+      "duration": 6.04,
+      "narration": "Food ko fear se nahi, science se samjho. Ye hai Food Code!",
+      "visual_type": "dramatic_verdict",
+      "environment": "Obsidian Hero Stage",
+      "background_tone": {
+        "primary": "#111111",
+        "secondary": "#1A140E",
+        "vignette": true
+      },
+      "camera": {
+        "movement": "smooth_pull_back",
+        "depth_parallax": true,
+        "zoom_start": 1.06,
+        "zoom_end": 1.0,
+        "easing": "cubic_bezier"
+      },
+      "layers": [
+        {
+          "name": "obsidian_hero_backdrop",
+          "depth_level": "background",
+          "type": "procedural_canvas",
+          "content_id": "hero_bg",
+          "animation": "subtle_drift",
+          "parallax_factor": 0.1
+        },
+        {
+          "name": "hero_bowl_portrait",
+          "depth_level": "midground",
+          "type": "svg_vector",
+          "content_id": "hero_bowl_svg",
+          "animation": "hover_breathe",
+          "parallax_factor": 0.5
+        },
+        {
+          "name": "food_code_brand_emblem",
+          "depth_level": "foreground",
+          "type": "html_mesh",
+          "content_id": "brand_emblem",
+          "animation": "pulse_glow",
+          "parallax_factor": 0.9
+        }
+      ],
+      "typography": {
+        "badge": "FOOD CODE \u2022 VERDICT",
+        "headline_main": "KNOW WHAT YOU EAT.",
+        "headline_sub": "SCIENCE OVER FEAR",
+        "highlight_words": [
+          "SCIENCE",
+          "KNOW",
+          "Food",
+          "Code"
+        ],
+        "animation": "word_by_word"
+      },
+      "transition": {
+        "type": "directional_wipe",
+        "duration": 0.5,
+        "direction": "center"
+      },
+      "foley": [
+        {
+          "effect": "cinematic_brand_signature_impact",
+          "time_offset": 0.2,
+          "volume": 0.85
+        }
+      ],
+      "keywords": [
+        "fear",
+        "science",
+        "Food",
+        "Code"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "renderer": "cdp_memory_pipe",
+  "resolution": {
+    "width": 1080,
+    "height": 1920
+  },
+  "fps": 30,
+  "color_space": "bt709",
+  "pixel_format": "yuv420p",
+  "video_codec": "libx264",
+  "audio_codec": "aac",
+  "audio_sample_rate": 48000,
+  "audio_bitrate": "192k",
+  "video_crf": 18,
+  "video_preset": "medium",
+  "disk_io_mode": "zero_disk_stream"
+}

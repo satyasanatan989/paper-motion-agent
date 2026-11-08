@@ -1,0 +1,29 @@
+{
+  "project_id": "instant_noodles_001",
+  "brand": "FOOD CODE",
+  "title": "What Happens When You Eat Instant Noodles?",
+  "niche": "Food Science / Nutrition / Food Technology",
+  "language": "hinglish",
+  "aspect_ratio": "9:16",
+  "resolution": {
+    "width": 1080,
+    "height": 1920
+  },
+  "fps": 30,
+  "target_duration_seconds": 40.0,
+  "color_palette": {
+    "deep_charcoal": "#111111",
+    "burnt_orange": "#F28C28",
+    "warm_white": "#F5F0E8",
+    "deep_red": "#8B3524",
+    "accent_gold": "#FFA94D"
+  },
+  "typography": {
+    "headline_font": "Bebas Neue, sans-serif",
+    "body_font": "Montserrat, sans-serif",
+    "accent_font": "Cinzel, serif",
+    "number_font": "JetBrains Mono, monospace"
+  },
+  "created_at": "2026-11-08T20:21:00+05:30",
+  "status": "in_production"
+}
