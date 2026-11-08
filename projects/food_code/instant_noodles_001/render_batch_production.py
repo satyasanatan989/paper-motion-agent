@@ -1,8 +1,12 @@
 """
 Batch-by-Batch Modular Production Engine for Food Code Episode 001.
-Renders each scene independently with authentic MeanwhileMayank / Vox
-Photographic Papercraft Collage assets, tactile props, kinetic animations,
-dynamic flip clocks, odometers, bubbling acid, and stitches them losslessly.
+Professional Documentary Video Editor Edition:
+- Word-by-Word Kinetic Karaoke Subtitles (Alex Hormozi / Vox style)
+- In-Camera Film Burn & Whip-Flash Transitions (0ms drift)
+- 35mm Procedural Film Grain & Warm Corner Light Leaks
+- Tactile Camera Impact Shakes on Stamp & Pushpin Hits
+- 3D Split-Flap Clock Flips & Real-Time Sodium Odometer
+- Bubbling Gastric Acid Pool & Scanning Laser
 """
 
 import json
@@ -49,7 +53,7 @@ master_soundtrack = proj_dir / "soundtrack.mp3"
 render_js = repo_root / "pipeline" / "render.js"
 
 print("=================================================================")
-print("🎬 FOOD CODE 001 — HIGH-ENERGY KINETIC MOTION GRAPHICS REEL")
+print("🎬 FOOD CODE 001 — PROFESSIONAL DOCUMENTARY EDITING SUITE")
 print("=================================================================\n")
 
 # Asset URI helpers
@@ -75,8 +79,10 @@ SCOTCH_TAPE_URI = get_asset_uri("scotch_tape_strip.png")
 PUSHPIN_URI = get_asset_uri("pushpin_red.png")
 RUBBER_STAMP_URI = get_asset_uri("rubber_stamp_warning.png")
 
-# Base CSS with MeanwhileMayank / Vox aesthetic + Kinetic Styles
+# Kinetic Styles
 KINETIC_CSS = KineticElements.get_kinetic_css()
+
+# Base CSS with Professional Editing Suite Features
 BASE_CSS = f"""
 :root {{
   --fc-black: #0E0C0A;
@@ -99,6 +105,30 @@ html, body {{
   position: relative; width: 1080px; height: 1920px;
   background: #12100E url('{CANVAS_URI}') no-repeat center center / cover;
   perspective: 1200px; overflow: hidden;
+}}
+
+/* 35mm Procedural Film Grain Overlay */
+.film-grain {{
+  position: absolute; inset: 0;
+  pointer-events: none; z-index: 950;
+  opacity: 0.08;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+}}
+
+/* Warm Documentary Corner Light Leak */
+.light-leak {{
+  position: absolute; top: -140px; right: -140px; width: 650px; height: 650px;
+  background: radial-gradient(circle, rgba(255, 120, 30, 0.24) 0%, rgba(255, 107, 0, 0.08) 50%, transparent 75%);
+  pointer-events: none; z-index: 920;
+  mix-blend-mode: screen;
+}}
+
+/* Film Burn Whip-Flash Transition Overlay */
+.film-flash {{
+  position: absolute; inset: 0;
+  background: radial-gradient(circle, rgba(255, 160, 50, 0.95) 0%, rgba(255, 107, 0, 0.5) 60%, transparent 100%);
+  pointer-events: none; z-index: 990; opacity: 0;
+  mix-blend-mode: screen;
 }}
 
 /* Authentic Top Brand Badge */
@@ -222,27 +252,45 @@ html, body {{
   background: rgba(35, 18, 10, 0.95);
 }}
 
-/* Bottom Editorial Caption Box */
+/* Word-by-Word Kinetic Karaoke Subtitle Box */
 .caption-box {{
-  position: absolute; bottom: 220px; left: 80px; right: 80px;
-  background: rgba(20, 17, 14, 0.95);
-  border: 1.5px solid rgba(255, 107, 0, 0.45);
+  position: absolute; bottom: 210px; left: 80px; right: 80px;
+  background: rgba(18, 15, 12, 0.96);
+  border: 1.5px solid rgba(255, 107, 0, 0.5);
   padding: 24px 34px; border-radius: 20px;
-  box-shadow: 0 14px 50px rgba(0, 0, 0, 0.9);
+  box-shadow: 0 16px 50px rgba(0, 0, 0, 0.92);
   backdrop-filter: blur(12px); z-index: 800;
+  text-align: center;
 }}
 .caption-text {{
-  font-family: 'Montserrat', sans-serif; font-size: 28px; line-height: 1.45;
-  font-weight: 700; color: var(--fc-cream); text-align: center;
+  font-family: 'Montserrat', sans-serif; font-size: 30px; line-height: 1.5;
+  font-weight: 700; color: #FAF5E8;
 }}
-.caption-text .highlight {{
-  position: relative;
-  color: #FFFFFF;
-  font-weight: 900;
-  padding: 2px 8px;
-  background: rgba(255, 107, 0, 0.55);
+.k-word {{
+  display: inline-block;
+  margin: 0 4px;
+  transition: transform 0.08s ease, color 0.08s ease;
+}}
+.k-word.active {{
+  color: #FFFFFF !important;
+  font-weight: 900 !important;
+  transform: scale(1.18);
+  background: #FF6B00;
+  padding: 2px 10px;
   border-radius: 6px;
-  box-shadow: 0 0 18px rgba(255, 107, 0, 0.65);
+  box-shadow: 0 0 20px rgba(255, 107, 0, 0.85);
+}}
+.k-word.kw.active {{
+  background: #E53E3E;
+  box-shadow: 0 0 22px rgba(229, 62, 62, 0.9);
+}}
+.k-word.spoken {{
+  color: #FAF5E8;
+  opacity: 0.95;
+}}
+.k-word.upcoming {{
+  color: #8C8276;
+  opacity: 0.40;
 }}
 
 {KINETIC_CSS}
@@ -410,7 +458,16 @@ def generate_scene_stage(scene: dict, scene_idx: int) -> Path:
         
     visual_html = build_scene_visual_html(s_id)
     
-    # Build timeline.js with spring physics, 12 FPS stop-motion jitter, and per-scene kinetic motions
+    # Build word-by-word karaoke subtitle HTML
+    words = scene["narration"].split()
+    word_spans = []
+    for w_idx, w in enumerate(words):
+        is_kw = any(re.search(r'\b' + re.escape(kw) + r'\b', w, re.I) for kw in scene["keywords"])
+        kw_class = " kw" if is_kw else ""
+        word_spans.append(f'<span class="k-word{kw_class}" id="w-{scene_idx}-{w_idx}">{w}</span>')
+    karaoke_html = " ".join(word_spans)
+    
+    # Build timeline.js with spring physics, 12 FPS jitter, camera impact shakes, and karaoke subtitle sync
     cam = scene["camera"]
     z_start = cam.get("zoom_start", 1.0)
     z_end = cam.get("zoom_end", 1.10)
@@ -423,6 +480,8 @@ def generate_scene_stage(scene: dict, scene_idx: int) -> Path:
     
     let currentTime = 0.0;
     const TOTAL_DURATION = {dur};
+    const WORD_COUNT = {len(words)};
+    
     window.setSeekTime = function(t) {{
       currentTime = Math.max(0.0, Math.min(TOTAL_DURATION, t));
       const p = currentTime / TOTAL_DURATION;
@@ -447,6 +506,13 @@ def generate_scene_stage(scene: dict, scene_idx: int) -> Path:
         rot = 0.8 * Math.sin(p * Math.PI);
       }}
       
+      // Camera Impact Shake (Triggered by Stamp Slam at t = 0.85s - 1.05s)
+      let impactShake = 0;
+      if (currentTime >= 0.85 && currentTime <= 1.05) {{
+        const shakeP = (currentTime - 0.85) / 0.20;
+        impactShake = Math.sin(shakeP * Math.PI * 8) * (1.0 - shakeP) * 5.0;
+      }}
+      
       // Stop-Motion Frame Jitter Engine (Quantized to 12 FPS)
       const frameNum = Math.floor(currentTime * 30);
       const jitterCycle = Math.floor(frameNum / 2.5);
@@ -458,9 +524,20 @@ def generate_scene_stage(scene: dict, scene_idx: int) -> Path:
       const st = document.getElementById('stage-asset');
       if (st) {{
         const finalX = (panX + jitterX).toFixed(2);
-        const finalY = (panY + jitterY).toFixed(2);
+        const finalY = (panY + jitterY + impactShake).toFixed(2);
         const finalRot = (rot + jitterRot).toFixed(2);
         st.style.transform = `translate3d(${{finalX}}px, ${{finalY}}px, 0px) scale(${{zoom.toFixed(4)}}) rotate(${{finalRot}}deg)`;
+      }}
+      
+      // Film Flash Transition on Scene Exit (Final 0.22s)
+      const flash = document.getElementById('film-flash');
+      if (flash) {{
+        if (currentTime >= TOTAL_DURATION - 0.22) {{
+          const flashP = (currentTime - (TOTAL_DURATION - 0.22)) / 0.22;
+          flash.style.opacity = (Math.sin(flashP * Math.PI) * 0.70).toFixed(2);
+        }} else {{
+          flash.style.opacity = '0';
+        }}
       }}
       
       // 1. Spring Entry on Hero Cutout
@@ -506,7 +583,6 @@ def generate_scene_stage(scene: dict, scene_idx: int) -> Path:
       
       // 5. Scene-Specific Kinetic Motions
       if ('{s_id}' === 'scene_001') {{
-        // Clock dynamic count
         const sec = Math.floor(currentTime * 12);
         const m2 = document.getElementById('clock-01-m2');
         const m1 = document.getElementById('clock-01-m1');
@@ -514,7 +590,6 @@ def generate_scene_stage(scene: dict, scene_idx: int) -> Path:
         if (m1) m1.innerText = Math.floor((sec / 10) % 6);
       }}
       else if ('{s_id}' === 'scene_003') {{
-        // Stomach Gastric Acid Bubbling
         for (let b = 0; b < 12; b++) {{
           const bub = document.getElementById('acid-bub-' + b);
           if (bub) {{
@@ -523,20 +598,17 @@ def generate_scene_stage(scene: dict, scene_idx: int) -> Path:
             bub.setAttribute('opacity', (1.0 - cycle / 100).toFixed(2));
           }}
         }}
-        // Clock hours count
         const hr = Math.floor((currentTime / TOTAL_DURATION) * 2.0);
         const h2 = document.getElementById('clock-03-h2');
         if (h2) h2.innerText = hr;
       }}
       else if ('{s_id}' === 'scene_006') {{
-        // Scanning Laser Sweep
         const laser = document.getElementById('doc-laser');
         if (laser) {{
           const laserP = clamp((currentTime - 0.4) / 1.8, 0, 1);
           laser.style.top = (laserP * 560).toFixed(1) + 'px';
           laser.style.opacity = (currentTime >= 0.4 && currentTime <= 2.4) ? '1' : '0';
         }}
-        // Odometer Count Up to 1760 mg
         const odoVal = document.getElementById('odo-sodium-val');
         const odoPct = document.getElementById('odo-sodium-pct');
         const odoBar = document.getElementById('odo-sodium-bar');
@@ -551,7 +623,6 @@ def generate_scene_stage(scene: dict, scene_idx: int) -> Path:
         }}
       }}
       else if ('{s_id}' === 'scene_007') {{
-        // Sequential badge pops
         const b1 = document.getElementById('badge-1');
         const b2 = document.getElementById('badge-2');
         if (b1) {{
@@ -563,6 +634,21 @@ def generate_scene_stage(scene: dict, scene_idx: int) -> Path:
           b2.style.transform = `scale(${{springBounce(p2).toFixed(3)}})`;
         }}
       }}
+      
+      // 6. Word-by-Word Kinetic Karaoke Subtitle Engine
+      const activeWordIdx = Math.floor((currentTime / TOTAL_DURATION) * WORD_COUNT);
+      for (let w = 0; w < WORD_COUNT; w++) {{
+        const wElem = document.getElementById(`w-{scene_idx}-` + w);
+        if (wElem) {{
+          if (w === activeWordIdx) {{
+            wElem.className = wElem.className.replace(/\\s*(active|spoken|upcoming)/g, '') + ' active';
+          }} else if (w < activeWordIdx) {{
+            wElem.className = wElem.className.replace(/\\s*(active|spoken|upcoming)/g, '') + ' spoken';
+          }} else {{
+            wElem.className = wElem.className.replace(/\\s*(active|spoken|upcoming)/g, '') + ' upcoming';
+          }}
+        }}
+      }}
     }};
     window.getCurrentTime = () => currentTime;
     window.getTotalDuration = () => TOTAL_DURATION;
@@ -570,11 +656,6 @@ def generate_scene_stage(scene: dict, scene_idx: int) -> Path:
     """
     with open(stage_path / "timeline.js", "w", encoding="utf-8") as f:
         f.write(js_content)
-        
-    # Build index.html
-    highlighted_text = scene["narration"]
-    for kw in scene["keywords"]:
-        highlighted_text = re.sub(f"({re.escape(kw)})", r'<span class="highlight">\1</span>', highlighted_text, flags=re.IGNORECASE)
         
     html = f"""<!DOCTYPE html>
 <html>
@@ -585,6 +666,10 @@ def generate_scene_stage(scene: dict, scene_idx: int) -> Path:
 </head>
 <body>
   <div id="viewport">
+    <div class="film-grain"></div>
+    <div class="light-leak"></div>
+    <div class="film-flash" id="film-flash"></div>
+    
     <div class="brand-badge">
       <div class="brand-dot"></div>
       <span class="brand-title">FOOD CODE</span>
@@ -603,7 +688,7 @@ def generate_scene_stage(scene: dict, scene_idx: int) -> Path:
     </div>
     
     <div class="caption-box">
-      <div class="caption-text">{highlighted_text}</div>
+      <div class="caption-text">{karaoke_html}</div>
     </div>
   </div>
   <script src="timeline.js"></script>
@@ -686,6 +771,6 @@ for sc_res in aesthetic_report["scenes"]:
     print(f"          Scene {sc_res['scene_index']:02d}: {sc_res['composite_score']} pts ({sc_res['status']})")
 
 print("\n=================================================================")
-print("✅ HIGH-ENERGY KINETIC MOTION GRAPHICS REEL COMPLETE!")
+print("✅ PROFESSIONAL DOCUMENTARY EDITING SUITE PRODUCTION COMPLETE!")
 print(f"   Deliverable: {final_video}")
 print("=================================================================\n")
