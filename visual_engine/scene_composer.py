@@ -15,12 +15,14 @@ try:
     from visual_engine.motion_presets import MotionEasing, ParticleField
     from visual_engine.transitions import TransitionLibrary
     from visual_engine.typography import KineticTypography
+    from visual_engine.hyperframes_primitives import HyperFramesPrimitives
 except ImportError:
     from ..storyboard.generator import StoryboardPlan, ScenePlan
     from .camera import CameraController
     from .motion_presets import MotionEasing, ParticleField
     from .transitions import TransitionLibrary
     from .typography import KineticTypography
+    from .hyperframes_primitives import HyperFramesPrimitives
 
 class DynamicSceneComposer:
     """Assembles full HTML/CSS/JS web stages tailored dynamically to any storyboard."""
@@ -261,9 +263,28 @@ class DynamicSceneComposer:
             else:
                 widget_markup = self.render_odometer_widget(m_title, m_val, widget_id=f"{sid}-odometer")
 
+        # HyperFrames Vox Annotation Rig
+        anno_markup = ""
+        anno_data = getattr(scene, 'annotation', None)
+        if isinstance(anno_data, dict):
+            kw = anno_data.get("keyword", (scene.keywords[0] if scene.keywords else "KEYWORD"))
+            nt = anno_data.get("note", "CRITICAL FACTOR")
+            st = anno_data.get("style", "highlight")
+            ac = anno_data.get("accent", "burnt_orange")
+            anno_markup = HyperFramesPrimitives.render_vox_annotate_markup(
+                keyword=kw,
+                note=nt,
+                style=st,
+                accent=ac,
+                widget_id=f"{sid}-vox-anno"
+            )
+
+        combined = base_content
         if widget_markup:
-            return f"{base_content}\n{widget_markup}"
-        return base_content
+            combined = f"{combined}\n{widget_markup}"
+        if anno_markup:
+            combined = f"{combined}\n{anno_markup}"
+        return combined
 
     @staticmethod
     def render_hanging_tag_widget(metric_title: str, metric_val: str, widget_id: str = "hanging-tag-widget") -> str:
@@ -682,6 +703,8 @@ html, body {{
 }}
 
 {transitions_css}
+
+{HyperFramesPrimitives.get_hyperframes_css_rules()}
 """
 
     def _generate_js(self, storyboard: StoryboardPlan) -> str:
@@ -698,6 +721,9 @@ html, body {{
                 "sceneId": scene.scene_id,
                 "caption": scene.narration,
                 "keywords": scene.keywords,
+                "annotation": getattr(scene, 'annotation', None),
+                "paperTransition": getattr(scene, 'paper_transition', None),
+                "cadence": getattr(scene, 'cadence', None),
                 "camera": {
                     "movement": scene.camera.movement,
                     "zoomStart": scene.camera.zoom_start,
@@ -844,6 +870,17 @@ html, body {{
     const relT = t - currentChapter.start;
     const progress = Math.min(1.0, Math.max(0.0, relT / dur));
 
+    // HyperFrames Vox Annotation Trigger
+    const activeAnno = activeSceneEl ? activeSceneEl.querySelector('.vox-annotate-container') : null;
+    if (activeAnno) {{
+      const drawAt = (currentChapter.annotation && currentChapter.annotation.draw_at != null) ? currentChapter.annotation.draw_at : 0.6;
+      if (relT >= drawAt) {{
+        if (!activeAnno.classList.contains('active')) activeAnno.classList.add('active');
+      }} else {{
+        activeAnno.classList.remove('active');
+      }}
+    }}
+
     // Dynamic Camera Application
     const cam = applyCameraMovement(
       currentChapter.camera.movement,
@@ -915,6 +952,13 @@ html, body {{
 
   window.getVideoDuration = function () {{
     return chapters[chapters.length - 1].end;
+  }};
+
+  // Register with HyperFrames deterministic timeline registry
+  window.__timelines = window.__timelines || {{}};
+  window.__timelines['main'] = {{
+    seek: function (t) {{ window.setSeekTime(t); }},
+    duration: function () {{ return window.getVideoDuration(); }}
   }};
 
 }})();

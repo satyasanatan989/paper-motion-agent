@@ -146,6 +146,32 @@
             "metric_val": { "type": "string" },
             "trigger_keyword": { "type": "string" }
           }
+        },
+        "annotation": {
+          "type": ["object", "null"],
+          "properties": {
+            "keyword": { "type": "string" },
+            "note": { "type": "string" },
+            "style": { "type": "string", "enum": ["highlight", "circle", "underline", "scribble"] },
+            "accent": { "type": "string", "enum": ["burnt_orange", "warm_gold", "paper_cream", "ink_black", "toxic_green", "cyan_accent", "violet_deep", "crimson_alert"] },
+            "draw_at": { "type": "number" }
+          }
+        },
+        "paper_transition": {
+          "type": ["object", "null"],
+          "properties": {
+            "type": { "type": "string", "enum": ["torn_paper_rip", "paper_collage_reveal", "whip_pan_cut"] },
+            "direction": { "type": "string", "enum": ["left-to-right", "right-to-left"] },
+            "roughness": { "type": "number" },
+            "tone": { "type": "string", "enum": ["cream", "kraft", "white", "mixed"] }
+          }
+        },
+        "cadence": {
+          "type": ["object", "null"],
+          "properties": {
+            "fps": { "type": "integer", "enum": [8, 10, 12, 15, 30] },
+            "boil": { "type": "boolean" }
+          }
         }
       }
     }

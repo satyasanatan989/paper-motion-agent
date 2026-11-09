@@ -65,6 +65,9 @@ class ScenePlan:
     metric_title: Optional[str] = None
     metric_val: Optional[str] = None
     widget: Optional[Dict[str, Any]] = None
+    annotation: Optional[Dict[str, Any]] = None
+    paper_transition: Optional[Dict[str, Any]] = None
+    cadence: Optional[Dict[str, Any]] = None
 
 @dataclass
 class StoryboardPlan:
@@ -170,6 +173,9 @@ class StoryboardGenerator:
             ch_widget = getattr(ch, 'widget', None)
             ch_metric_title = getattr(ch, 'metric_title', None) or (ch_widget.get('metric_title') if isinstance(ch_widget, dict) else None)
             ch_metric_val = getattr(ch, 'metric_val', None) or (ch_widget.get('metric_val') if isinstance(ch_widget, dict) else None)
+            ch_annotation = getattr(ch, 'annotation', None)
+            ch_paper_transition = getattr(ch, 'paper_transition', None)
+            ch_cadence = getattr(ch, 'cadence', None)
 
             scene = ScenePlan(
                 scene_id=f"scene_{ch_num:03d}",
@@ -188,7 +194,10 @@ class StoryboardGenerator:
                 keywords=ch.keywords if hasattr(ch, 'keywords') else [],
                 metric_title=ch_metric_title,
                 metric_val=ch_metric_val,
-                widget=ch_widget
+                widget=ch_widget,
+                annotation=ch_annotation,
+                paper_transition=ch_paper_transition,
+                cadence=ch_cadence
             )
             scenes.append(scene)
 

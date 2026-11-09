@@ -37,6 +37,24 @@ Follow these mandatory screen typography rules:
        "metric_val": "<Value string, e.g. '50 HRS' or '85%' or 'HIGH RISK'>",
        "trigger_keyword": "<Exact word from script that triggers this widget's animation>"
    }
+
+4. HYPERFRAMES VOX ANNOTATION & TACTILE TRANSITIONS:
+   For high-impact scientific facts or documentary revelations, prescribe a Vox-style hand-drawn callout:
+   "annotation": {
+       "keyword": "<Single key revelation word, e.g. 'GLUTEN' or 'ENDOSPERM'>",
+       "note": "<Short monospace scientific label, e.g. 'GUT IRRITANT' or 'ZERO FIBER'>",
+       "style": "highlight" | "circle" | "underline" | "scribble",
+       "accent": "burnt_orange" | "warm_gold" | "crimson_alert" | "toxic_green" | "cyan_accent",
+       "draw_at": 0.8
+   }
+
+   And prescribe tactile paper transitions:
+   "paper_transition": {
+       "type": "torn_paper_rip" | "paper_collage_reveal" | "whip_pan_cut",
+       "direction": "left-to-right" | "right-to-left",
+       "roughness": 55,
+       "tone": "cream" | "kraft" | "white"
+   }
 """
 
 MAYANK_DIRECTOR_SYSTEM_PROMPT = f"""You are the Lead Director and Motion Graphics Architect for PaperMotion AI.
