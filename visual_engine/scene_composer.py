@@ -5,7 +5,7 @@ web stage containing HTML5 Canvas, SVG vector layers, CSS 3D styling, and millis
 """
 
 from pathlib import Path
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 import json
 import html
 
@@ -27,13 +27,30 @@ except ImportError:
 class DynamicSceneComposer:
     """Assembles full HTML/CSS/JS web stages tailored dynamically to any storyboard."""
 
-    def compose_stage(self, storyboard: StoryboardPlan, output_dir: Path) -> Path:
+    def compose_stage(self, storyboard: StoryboardPlan, output_dir: Path, word_timestamps: Optional[List[Dict[str, Any]]] = None) -> Path:
         """
         Generates index.html, style.css, and timeline.js into output_dir.
         Returns the path to index.html.
         """
         output_dir = Path(output_dir)
         output_dir.mkdir(parents=True, exist_ok=True)
+
+        # Copy word_timestamps.json if present in parent directory
+        src_timestamps = output_dir.parent / "word_timestamps.json"
+        if src_timestamps.exists() and not (output_dir / "word_timestamps.json").exists():
+            import shutil
+            shutil.copy(src_timestamps, output_dir / "word_timestamps.json")
+
+        if word_timestamps is None:
+            ts_candidate = output_dir / "word_timestamps.json"
+            if not ts_candidate.exists():
+                ts_candidate = output_dir.parent / "word_timestamps.json"
+            if ts_candidate.exists():
+                try:
+                    with open(ts_candidate, "r", encoding="utf-8") as f:
+                        word_timestamps = json.load(f)
+                except Exception:
+                    word_timestamps = []
 
         # 1. Generate HTML
         html_content = self._generate_html(storyboard)
@@ -48,16 +65,10 @@ class DynamicSceneComposer:
             f.write(css_content)
 
         # 3. Generate Timeline JS
-        js_content = self._generate_js(storyboard)
+        js_content = self._generate_js(storyboard, word_timestamps=word_timestamps)
         js_file = output_dir / "timeline.js"
         with open(js_file, "w", encoding="utf-8") as f:
             f.write(js_content)
-
-        # 4. Copy word_timestamps.json if present in parent directory
-        src_timestamps = output_dir.parent / "word_timestamps.json"
-        if src_timestamps.exists():
-            import shutil
-            shutil.copy(src_timestamps, output_dir / "word_timestamps.json")
 
         return html_file
 
@@ -166,8 +177,12 @@ class DynamicSceneComposer:
         vtype = scene.visual_type
         sid = scene.scene_id
 
+        # 0. Custom HTML Override
+        if getattr(scene, 'custom_html', None):
+            base_content = scene.custom_html
+
         # 1. Specialized Ice Cream vs Frozen Dessert Visuals
-        if "Ice Cream" in scene.title or "Frozen Dessert" in scene.title or "Dairy Law" in scene.title or "Palm Oil" in scene.title or "Profit" in scene.title or "Melting" in scene.title or "Deception" in scene.title or "Label" in scene.title:
+        elif "Ice Cream" in scene.title or "Frozen Dessert" in scene.title or "Dairy Law" in scene.title or "Palm Oil" in scene.title or "Profit" in scene.title or "Melting" in scene.title or "Deception" in scene.title or "Label" in scene.title:
             if "Deception" in scene.title or scene.chapter_num == 1:
                 base_content = f"""
           <svg id="{sid}-visual" width="760" height="520" viewBox="0 0 760 520" style="filter: var(--paper-cutout);">
@@ -892,7 +907,7 @@ html, body {{
 {spring_keyframes_css}
 """
 
-    def _generate_js(self, storyboard: StoryboardPlan) -> str:
+    def _generate_js(self, storyboard: StoryboardPlan, word_timestamps: Optional[List[Dict[str, Any]]] = None) -> str:
         chapters_json = []
         cur_time = 0.0
         for scene in storyboard.scenes:
@@ -926,6 +941,7 @@ html, body {{
             })
 
         chapters_str = json.dumps(chapters_json, indent=4, ensure_ascii=False)
+        wt_str = json.dumps(word_timestamps or [], ensure_ascii=False)
         cam_runtime = CameraController.generate_js_camera_runtime()
         spring_runtime = SpringSolver.generate_js_spring_runtime()
 
@@ -987,16 +1003,18 @@ html, body {{
     .catch(() => {{}});
 
   // Word-level audio synchronization for millisecond-accurate CSS transitions
-  let wordTimestamps = [];
-  fetch('word_timestamps.json')
-    .then(r => r.json())
-    .then(data => {{ if (Array.isArray(data)) wordTimestamps = data; }})
-    .catch(() => {{
-      fetch('../word_timestamps.json')
-        .then(r => r.json())
-        .then(data => {{ if (Array.isArray(data)) wordTimestamps = data; }})
-        .catch(() => {{}});
-    }});
+  let wordTimestamps = {wt_str};
+  if (!wordTimestamps || wordTimestamps.length === 0) {{
+    fetch('word_timestamps.json')
+      .then(r => r.json())
+      .then(data => {{ if (Array.isArray(data)) wordTimestamps = data; }})
+      .catch(() => {{
+        fetch('../word_timestamps.json')
+          .then(r => r.json())
+          .then(data => {{ if (Array.isArray(data)) wordTimestamps = data; }})
+          .catch(() => {{}});
+      }});
+  }}
 
   // 3. Camera System Runtime
   {cam_runtime}

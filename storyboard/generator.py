@@ -70,6 +70,7 @@ class ScenePlan:
     cadence: Optional[Dict[str, Any]] = None
     color_field: Optional[str] = None
     assemble_from_empty: bool = True
+    custom_html: Optional[str] = None
 
 @dataclass
 class StoryboardPlan:

@@ -56,6 +56,7 @@ async function main() {
     '--headless=new',
     '--disable-gpu',
     '--no-sandbox',
+    '--allow-file-access-from-files',
     `--user-data-dir=${tempProfile}`,
     `--window-size=${params.width},${params.height}`,
     htmlUrl
