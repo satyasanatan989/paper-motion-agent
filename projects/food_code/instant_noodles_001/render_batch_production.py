@@ -33,6 +33,7 @@ from pipeline.batch_stitcher import BatchStitcher
 from quality_control.validator import QualityValidator
 from tools.aesthetic_judge import AestheticJudge
 from visual_engine.kinetic_elements import KineticElements
+from voice.cinecode_foley import CineCodeFoleyEngine
 
 proj_dir = Path(__file__).resolve().parent
 output_dir = repo_root / "output" / "food_code"
@@ -111,14 +112,14 @@ html, body {{
 .film-grain {{
   position: absolute; inset: 0;
   pointer-events: none; z-index: 950;
-  opacity: 0.08;
+  opacity: 0.14;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
 }}
 
 /* Warm Documentary Corner Light Leak */
 .light-leak {{
-  position: absolute; top: -140px; right: -140px; width: 650px; height: 650px;
-  background: radial-gradient(circle, rgba(255, 120, 30, 0.24) 0%, rgba(255, 107, 0, 0.08) 50%, transparent 75%);
+  position: absolute; top: -140px; right: -140px; width: 750px; height: 750px;
+  background: radial-gradient(circle, rgba(255, 120, 30, 0.35) 0%, rgba(255, 107, 0, 0.16) 50%, transparent 75%);
   pointer-events: none; z-index: 920;
   mix-blend-mode: screen;
 }}
@@ -239,7 +240,7 @@ html, body {{
 }}
 .paper-badge {{
   background: rgba(24, 20, 16, 0.95);
-  border: 1.5px solid var(--fc-cream);
+  border: 1.5px solid var(--fc-orange);
   padding: 8px 18px; border-radius: 8px;
   font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 800;
   letter-spacing: 1px; color: var(--fc-cream);
@@ -248,8 +249,9 @@ html, body {{
 }}
 .paper-badge.orange {{
   border-color: var(--fc-orange);
-  color: var(--fc-orange);
-  background: rgba(35, 18, 10, 0.95);
+  color: #FFFFFF;
+  background: #FF6B00;
+  box-shadow: 0 0 24px rgba(255, 107, 0, 0.75);
 }}
 
 /* Word-by-Word Kinetic Karaoke Subtitle Box */
@@ -326,6 +328,7 @@ def build_scene_visual_html(s_id: str) -> str:
           
           <img id="hero-card" class="hero-cutout" src="{MOUTH_ENZYME_URI}" style="margin-top: 120px;" alt="Salivary Amylase">
           <img id="tape-elem" class="prop-tape" src="{SCOTCH_TAPE_URI}" style="top: 230px; right: 120px; transform: rotate(12deg);" alt="Tape">
+          <img id="stamp-elem" class="prop-stamp" src="{RUBBER_STAMP_URI}" style="bottom: 110px; right: 40px; transform: rotate(-5deg);" alt="Evidence Stamp">
           
           <div class="badge-row">
             <span id="badge-1" class="paper-badge orange">SALIVARY AMYLASE (PTYALIN)</span>
@@ -363,6 +366,7 @@ def build_scene_visual_html(s_id: str) -> str:
           
           <img id="hero-card" class="hero-cutout" src="{INTESTINE_URI}" style="margin-top: 20px;" alt="Intestinal Brush Border">
           <img id="pin-elem" class="prop-pin" src="{PUSHPIN_URI}" style="top: 140px; left: 320px;" alt="Pushpin">
+          <img id="stamp-elem" class="prop-stamp" src="{RUBBER_STAMP_URI}" style="bottom: 110px; left: 40px; transform: rotate(7deg);" alt="Warning Stamp">
           
           <div class="badge-row">
             <span id="badge-1" class="paper-badge orange">PANCREATIC ENZYMES</span>
@@ -381,6 +385,7 @@ def build_scene_visual_html(s_id: str) -> str:
           
           <img id="hero-card" class="hero-cutout" src="{BLOODSTREAM_URI}" style="margin-top: 20px;" alt="Bloodstream Absorption">
           <img id="pin-elem" class="prop-pin" src="{PUSHPIN_URI}" style="top: 150px; right: 340px;" alt="Pushpin">
+          <img id="stamp-elem" class="prop-stamp" src="{RUBBER_STAMP_URI}" style="bottom: 110px; right: 40px; transform: rotate(-6deg);" alt="Warning Stamp">
           
           <div class="badge-row">
             <span id="badge-1" class="paper-badge orange">GLYCEMIC SURGE</span>
@@ -421,6 +426,7 @@ def build_scene_visual_html(s_id: str) -> str:
           
           <img id="hero-card" class="hero-cutout" src="{BALANCED_BOWL_URI}" style="margin-top: 10px; max-width: 650px; max-height: 650px;" alt="Balanced Bowl">
           <img id="pin-elem" class="prop-pin" src="{PUSHPIN_URI}" style="top: 140px; right: 380px;" alt="Pushpin">
+          <img id="stamp-elem" class="prop-stamp" src="{RUBBER_STAMP_URI}" style="bottom: 110px; left: 40px; transform: rotate(6deg);" alt="Warning Stamp">
           
           <div class="badge-row">
             <span id="badge-1" class="paper-badge orange">+ PROTEIN (BOILED EGG)</span>
@@ -581,7 +587,39 @@ def generate_scene_stage(scene: dict, scene_idx: int) -> Path:
         }}
       }}
       
-      // 5. Scene-Specific Kinetic Motions
+      // 5. Secondary Cutout Follow-Through Physics (CineCode / Vox Style)
+      const sec = document.getElementById('sec-card');
+      if (sec) {{
+        const secP = clamp((currentTime - 0.12) / 0.38, 0, 1);
+        const secSpring = springBounce(secP);
+        const secDropY = (1.0 - secSpring) * -45;
+        const secScale = 0.88 + 0.12 * secSpring;
+        sec.style.transform = `translateY(${{secDropY.toFixed(2)}}px) scale(${{secScale.toFixed(4)}})`;
+        sec.style.opacity = secP > 0 ? '0.92' : '0';
+      }}
+
+      // 6. Sequential Tactile Badge Landings
+      const b1 = document.getElementById('badge-1');
+      const b2 = document.getElementById('badge-2');
+      if (b1) {{
+        const p1 = clamp((currentTime - 0.30) / 0.28, 0, 1);
+        b1.style.transform = `scale(${{springBounce(p1).toFixed(3)}})`;
+        b1.style.opacity = p1 > 0 ? '1' : '0';
+      }}
+      if (b2) {{
+        const p2 = clamp((currentTime - 0.52) / 0.28, 0, 1);
+        b2.style.transform = `scale(${{springBounce(p2).toFixed(3)}})`;
+        b2.style.opacity = p2 > 0 ? '1' : '0';
+      }}
+
+      // 7. Mechanical Flip Clock Pop-in
+      const clockBox = document.getElementById('clock-container');
+      if (clockBox) {{
+        const cP = clamp(currentTime / 0.30, 0, 1);
+        clockBox.style.transform = `scale(${{springBounce(cP).toFixed(3)}})`;
+      }}
+
+      // 8. Scene-Specific Kinetic Motions
       if ('{s_id}' === 'scene_001') {{
         const sec = Math.floor(currentTime * 12);
         const m2 = document.getElementById('clock-01-m2');
@@ -712,6 +750,12 @@ for i, sc in enumerate(scenes):
     
     html_path = generate_scene_stage(sc, i)
     
+    force_render = "--force" in sys.argv
+    if not force_render and scene_mp4.exists() and scene_mp4.stat().st_size > 500000:
+        print(f"       -> [CACHED] {s_id}.mp4 already rendered ({scene_mp4.stat().st_size / 1024 / 1024:.2f} MB). Skipping CDP render.")
+        rendered_scenes.append(scene_mp4)
+        continue
+        
     cmd = [
         "node",
         str(render_js),
@@ -732,7 +776,28 @@ for i, sc in enumerate(scenes):
     print(f"       -> [SUCCESS] Rendered {s_id}.mp4 in {el:.1f}s ({scene_mp4.stat().st_size / 1024 / 1024:.2f} MB)")
     rendered_scenes.append(scene_mp4)
 
-# Step 2: Losslessly stitch scenes with master audio
+# Step 2: Synthesize Synchronized CineCode Foley & Master Soundtrack
+print("\n🎧 [CineCode Foley Suite] Synthesizing synchronized tactile sound effects & BGM...")
+foley_engine = CineCodeFoleyEngine(sample_rate=44100)
+narration_wav = proj_dir / "narration.wav"
+foley_master_mp3 = proj_dir / "soundtrack_foley_master.mp3"
+
+scene_starts = [0.0]
+for sc_item in scenes[:-1]:
+    scene_starts.append(scene_starts[-1] + sc_item["duration"])
+
+master_soundtrack = foley_engine.mix_production_soundtrack(
+    voiceover_wav=narration_wav,
+    output_path=foley_master_mp3,
+    total_duration=57.46,
+    scene_starts=scene_starts,
+    bgm_volume=0.18,
+    foley_volume=0.35,
+    ducking_ratio=0.32
+)
+print(f"       -> [SUCCESS] Synthesized CineCode master audio with Foley: {master_soundtrack}")
+
+# Step 3: Losslessly stitch scenes with master audio
 print("\n🔗 [Stitching] Assembling all 8 scenes losslessly with master soundtrack...")
 master_stitched_mp4 = output_dir / "instant_noodles_batch_master.mp4"
 stitcher = BatchStitcher()
@@ -745,7 +810,7 @@ final_video = stitcher.stitch_scenes(
 )
 print(f"       -> [SUCCESS] Master stitched video produced: {final_video}")
 
-# Step 3: Run Quality Control
+# Step 4: Run Quality Control
 print("\n🔍 [Quality Control] Validating stitched master video...")
 qc = QualityValidator()
 qc_report = qc.inspect_video(final_video, expected_duration=57.46)
@@ -758,7 +823,7 @@ print(f"       -> Duration: {qc_report.duration:.2f}s")
 print(f"       -> Loudness: {qc_report.integrated_lufs} LUFS (Peak: {qc_report.true_peak_db} dBTP)")
 print(f"       -> Black Frames: {qc_report.black_frame_count}")
 
-# Step 4: Run Aesthetic Judge Self-Evaluation
+# Step 5: Run Aesthetic Judge Self-Evaluation
 print("\n🎨 [Aesthetic Judge] Running visual critic & scoring against viral documentary standard...")
 judge = AestheticJudge()
 aesthetic_report = judge.judge_video(final_video, scene_count=8)
@@ -769,6 +834,22 @@ print(f"       -> Average Aesthetic Score: {aesthetic_report['average_aesthetic_
 print(f"       -> Viral Ready: {aesthetic_report['viral_ready']}")
 for sc_res in aesthetic_report["scenes"]:
     print(f"          Scene {sc_res['scene_index']:02d}: {sc_res['composite_score']} pts ({sc_res['status']})")
+
+# Step 6: CineCode Hard QC Validation
+cinecode_qc = repo_root.parent / "cinecode" / "scripts" / "qc.py"
+if not cinecode_qc.exists():
+    cinecode_qc = repo_root / "cinecode" / "scripts" / "qc.py"
+if cinecode_qc.exists():
+    print("\n⚡ [CineCode QC Suite] Testing Hook & Loudness against CineCode rules...")
+    try:
+        hook_cmd = ["python", str(cinecode_qc), "hook", str(final_video)]
+        hook_res = subprocess.run(hook_cmd, capture_output=True, text=True)
+        print(f"       -> Hook Check:\n{hook_res.stdout.strip()}")
+        loud_cmd = ["python", str(cinecode_qc), "loud", str(final_video)]
+        loud_res = subprocess.run(loud_cmd, capture_output=True, text=True)
+        print(f"       -> Loudness Check:\n{loud_res.stdout.strip()}")
+    except Exception as e:
+        print(f"       -> CineCode QC notice: {e}")
 
 print("\n=================================================================")
 print("✅ PROFESSIONAL DOCUMENTARY EDITING SUITE PRODUCTION COMPLETE!")
