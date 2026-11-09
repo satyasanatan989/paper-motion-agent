@@ -1,0 +1,68 @@
+{
+  "denoiser": "gpu",
+  "exposure": {
+    "clipped": 0.034600412588438885,
+    "coverage": 0.535461550245098,
+    "frames": 1,
+    "mean": 0.5469651602020827,
+    "near_black": 0.00025175275705029306,
+    "worst_clipped": {
+      "frame": 0,
+      "share": 0.034600412588438885
+    },
+    "worst_near_black": {
+      "frame": 0,
+      "share": 0.00025175275705029306
+    }
+  },
+  "fps": 24,
+  "frames": [
+    {
+      "camera": "cam_main",
+      "depth_unit_m": 0.015259022,
+      "exposure": {
+        "clipped": 0.034600412588438885,
+        "coverage": 0.535461550245098,
+        "mean": 0.5469651602020827,
+        "near_black": 0.00025175275705029306
+      },
+      "index": 0,
+      "time": 0.0
+    }
+  ],
+  "object_ids": [
+    {
+      "name": "outer_ring",
+      "node_index": 0,
+      "pass_index": 1
+    },
+    {
+      "name": "inner_core",
+      "node_index": 1,
+      "pass_index": 2
+    }
+  ],
+  "profile": {
+    "level": 0,
+    "name": "std/draft",
+    "version": 2
+  },
+  "settings": {
+    "denoiser": {},
+    "fast_gi": {
+      "method": "ray"
+    },
+    "integrator": "raster",
+    "previs": false,
+    "probes": null,
+    "reconstruct": false,
+    "reflections": "ray",
+    "refraction": "environment",
+    "samples": 4,
+    "seed": 0,
+    "shadow_method": "auto",
+    "subsurface_method": null
+  },
+  "version": 3,
+  "warnings": []
+}

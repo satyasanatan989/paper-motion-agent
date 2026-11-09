@@ -74,6 +74,8 @@ BLOODSTREAM_URI = get_asset_uri("photo_bloodstream_cutout.png")
 NUTRITION_LABEL_URI = get_asset_uri("nutrition_label_cutout.png")
 BALANCED_BOWL_URI = get_asset_uri("photo_bowl_cutout.png")
 HERO_CREST_URI = get_asset_uri("science_foodcode_crest.png")
+VORK_3D_CREST_URI = get_asset_uri("vork_3d_gold_crest.png")
+VORK_3D_MOLECULE_URI = get_asset_uri("vork_3d_glucose_molecule.png")
 
 # Tactile Props URIs
 SCOTCH_TAPE_URI = get_asset_uri("scotch_tape_strip.png")
@@ -361,10 +363,12 @@ def build_scene_visual_html(s_id: str) -> str:
     elif s_id == "scene_004":
         return f"""
         <div style="position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
-          <img id="sec-card" class="secondary-cutout" src="{MACRO_NOODLES_URI}" style="top: 20px; right: 30px; width: 300px; transform: rotate(6deg); opacity: 0.85;" alt="Noodles">
+          <img id="sec-card" class="secondary-cutout" src="{MACRO_NOODLES_URI}" style="top: 20px; right: 30px; width: 280px; transform: rotate(6deg); opacity: 0.85;" alt="Noodles">
           <img id="tape-elem" class="prop-tape" src="{SCOTCH_TAPE_URI}" style="top: 10px; right: 80px; transform: rotate(-4deg);" alt="Tape">
           
           <img id="hero-card" class="hero-cutout" src="{INTESTINE_URI}" style="margin-top: 20px;" alt="Intestinal Brush Border">
+          <img id="mol-elem" class="secondary-cutout" src="{VORK_3D_MOLECULE_URI}" style="top: 220px; right: 30px; width: 330px;" alt="3D Glucose Molecule">
+          
           <img id="pin-elem" class="prop-pin" src="{PUSHPIN_URI}" style="top: 140px; left: 320px;" alt="Pushpin">
           <img id="stamp-elem" class="prop-stamp" src="{RUBBER_STAMP_URI}" style="bottom: 110px; left: 40px; transform: rotate(7deg);" alt="Warning Stamp">
           
@@ -384,6 +388,8 @@ def build_scene_visual_html(s_id: str) -> str:
           <img id="tape-elem" class="prop-tape" src="{SCOTCH_TAPE_URI}" style="top: 10px; left: 90px; transform: rotate(3deg);" alt="Tape">
           
           <img id="hero-card" class="hero-cutout" src="{BLOODSTREAM_URI}" style="margin-top: 20px;" alt="Bloodstream Absorption">
+          <img id="mol-elem" class="secondary-cutout" src="{VORK_3D_MOLECULE_URI}" style="top: 240px; left: 40px; width: 310px;" alt="3D Glucose Molecule">
+          
           <img id="pin-elem" class="prop-pin" src="{PUSHPIN_URI}" style="top: 150px; right: 340px;" alt="Pushpin">
           <img id="stamp-elem" class="prop-stamp" src="{RUBBER_STAMP_URI}" style="bottom: 110px; right: 40px; transform: rotate(-6deg);" alt="Warning Stamp">
           
@@ -437,7 +443,7 @@ def build_scene_visual_html(s_id: str) -> str:
     elif s_id == "scene_008":
         return f"""
         <div style="position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
-          <img id="hero-card" class="hero-cutout" src="{HERO_CREST_URI}" alt="Food Code Crest">
+          <img id="hero-card" class="hero-cutout" src="{VORK_3D_CREST_URI}" style="max-width: 680px; max-height: 680px; filter: drop-shadow(0 25px 60px rgba(0, 0, 0, 0.98));" alt="Food Code 3D Gold Seal">
           <img id="pin-elem" class="prop-pin" src="{PUSHPIN_URI}" style="top: 140px; left: 450px;" alt="Pushpin">
           <img id="tape-elem" class="prop-tape" src="{SCOTCH_TAPE_URI}" style="top: 160px; right: 210px; transform: rotate(15deg);" alt="Tape">
           
@@ -619,7 +625,18 @@ def generate_scene_stage(scene: dict, scene_idx: int) -> Path:
         clockBox.style.transform = `scale(${{springBounce(cP).toFixed(3)}})`;
       }}
 
-      // 8. Scene-Specific Kinetic Motions
+      // 8. 3D Vork Molecule Floating Animation
+      const mol = document.getElementById('mol-elem');
+      if (mol) {{
+        const molP = clamp((currentTime - 0.20) / 0.40, 0, 1);
+        const mSpring = springBounce(molP);
+        const mFloat = Math.sin(currentTime * 3.5) * 12.0;
+        const mRot = Math.cos(currentTime * 2.0) * 6.0;
+        mol.style.transform = `scale(${{mSpring.toFixed(3)}}) translateY(${{mFloat.toFixed(2)}}px) rotate(${{mRot.toFixed(2)}}deg)`;
+        mol.style.opacity = molP > 0 ? '0.96' : '0';
+      }}
+
+      // 9. Scene-Specific Kinetic Motions
       if ('{s_id}' === 'scene_001') {{
         const sec = Math.floor(currentTime * 12);
         const m2 = document.getElementById('clock-01-m2');

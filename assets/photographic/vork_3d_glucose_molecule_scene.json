@@ -1,0 +1,190 @@
+{
+  "version": 2,
+  "nodes": [
+    {
+      "type": "mesh",
+      "name": "c_center",
+      "geometry": {
+        "std": "sphere",
+        "radius": 0.75,
+        "segments": 32,
+        "rings": 16
+      },
+      "translation": [
+        0,
+        0,
+        0
+      ],
+      "materials": [
+        {
+          "inputs": {
+            "base_color": [
+              0.15,
+              0.15,
+              0.15
+            ],
+            "base_metalness": 0.2,
+            "specular_roughness": 0.25
+          }
+        }
+      ]
+    },
+    {
+      "type": "mesh",
+      "name": "o_node1",
+      "geometry": {
+        "std": "sphere",
+        "radius": 0.55,
+        "segments": 32,
+        "rings": 16
+      },
+      "translation": [
+        -1.2,
+        0.8,
+        0.2
+      ],
+      "materials": [
+        {
+          "inputs": {
+            "base_color": [
+              0.85,
+              0.08,
+              0.12
+            ],
+            "base_metalness": 0.1,
+            "specular_roughness": 0.15,
+            "subsurface_weight": 0.4,
+            "subsurface_color": [
+              1.0,
+              0.2,
+              0.2
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "type": "mesh",
+      "name": "o_node2",
+      "geometry": {
+        "std": "sphere",
+        "radius": 0.55,
+        "segments": 32,
+        "rings": 16
+      },
+      "translation": [
+        1.1,
+        -0.7,
+        -0.2
+      ],
+      "materials": [
+        {
+          "inputs": {
+            "base_color": [
+              1.0,
+              0.45,
+              0.05
+            ],
+            "base_metalness": 0.1,
+            "specular_roughness": 0.15,
+            "emission_luminance": 8.0,
+            "emission_color": [
+              1.0,
+              0.45,
+              0.05
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "type": "mesh",
+      "name": "h_node1",
+      "geometry": {
+        "std": "sphere",
+        "radius": 0.38,
+        "segments": 24,
+        "rings": 12
+      },
+      "translation": [
+        0.2,
+        1.3,
+        -0.4
+      ],
+      "materials": [
+        {
+          "inputs": {
+            "base_color": [
+              0.95,
+              0.95,
+              0.95
+            ],
+            "specular_roughness": 0.1
+          }
+        }
+      ]
+    },
+    {
+      "type": "light",
+      "shape": "rectangle",
+      "translation": [
+        -3,
+        4,
+        4
+      ],
+      "target": [
+        0,
+        0,
+        0
+      ],
+      "energy": 900,
+      "size": 3.5,
+      "color": [
+        1.0,
+        0.95,
+        0.9
+      ]
+    },
+    {
+      "type": "light",
+      "shape": "rectangle",
+      "translation": [
+        3,
+        -2,
+        3
+      ],
+      "target": [
+        0,
+        0,
+        0
+      ],
+      "energy": 450,
+      "size": 4.0,
+      "color": [
+        0.8,
+        0.9,
+        1.0
+      ]
+    },
+    {
+      "type": "camera",
+      "translation": [
+        0,
+        0,
+        4.5
+      ],
+      "target": [
+        0,
+        0,
+        0
+      ]
+    }
+  ],
+  "render": {
+    "background": "transparent",
+    "resolution": [
+      640,
+      640
+    ]
+  }
+}

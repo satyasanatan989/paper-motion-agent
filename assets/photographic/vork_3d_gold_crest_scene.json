@@ -1,0 +1,167 @@
+{
+  "version": 2,
+  "nodes": [
+    {
+      "type": "mesh",
+      "name": "outer_ring",
+      "geometry": {
+        "std": "sphere",
+        "radius": 1.25,
+        "segments": 48,
+        "rings": 24
+      },
+      "scale": [
+        1.0,
+        1.0,
+        0.12
+      ],
+      "translation": [
+        0,
+        0,
+        0
+      ],
+      "materials": [
+        {
+          "program": "std/openpbr",
+          "inputs": {
+            "base_color": [
+              0.88,
+              0.65,
+              0.22
+            ],
+            "base_metalness": 0.95,
+            "specular_roughness": 0.22,
+            "coat_weight": 0.4,
+            "coat_roughness": 0.08
+          }
+        }
+      ]
+    },
+    {
+      "type": "mesh",
+      "name": "inner_core",
+      "geometry": {
+        "std": "box",
+        "size": [
+          1.2,
+          1.2,
+          0.2
+        ]
+      },
+      "rotation": {
+        "euler": [
+          0,
+          0,
+          0.785398
+        ]
+      },
+      "materials": [
+        {
+          "program": "std/openpbr",
+          "inputs": {
+            "base_color": [
+              0.98,
+              0.78,
+              0.3
+            ],
+            "base_metalness": 0.98,
+            "specular_roughness": 0.14,
+            "emission_luminance": 12.0,
+            "emission_color": [
+              1.0,
+              0.65,
+              0.15
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "type": "light",
+      "name": "key_light",
+      "shape": "rectangle",
+      "translation": [
+        -2.8,
+        3.5,
+        4.0
+      ],
+      "target": [
+        0,
+        0,
+        0
+      ],
+      "energy": 850,
+      "size": 3.0,
+      "color": [
+        1.0,
+        0.92,
+        0.82
+      ]
+    },
+    {
+      "type": "light",
+      "name": "fill_light",
+      "shape": "rectangle",
+      "translation": [
+        3.2,
+        1.8,
+        3.5
+      ],
+      "target": [
+        0,
+        0,
+        0
+      ],
+      "energy": 380,
+      "size": 4.5,
+      "color": [
+        0.85,
+        0.9,
+        1.0
+      ]
+    },
+    {
+      "type": "light",
+      "name": "rim_light",
+      "shape": "rectangle",
+      "translation": [
+        0,
+        -3.0,
+        -3.0
+      ],
+      "target": [
+        0,
+        0,
+        0
+      ],
+      "energy": 900,
+      "size": 2.5,
+      "color": [
+        1.0,
+        0.75,
+        0.4
+      ]
+    },
+    {
+      "type": "camera",
+      "name": "cam_main",
+      "translation": [
+        0,
+        0,
+        4.2
+      ],
+      "target": [
+        0,
+        0,
+        0
+      ]
+    }
+  ],
+  "render": {
+    "background": "transparent",
+    "resolution": [
+      640,
+      640
+    ]
+  }
+}
