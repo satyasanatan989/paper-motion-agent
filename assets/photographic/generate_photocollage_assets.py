@@ -135,9 +135,8 @@ def generate_diecut_sticker(
     """
     Turns any transparent artwork into a real die-cut vinyl sticker:
     1. Dilates alpha silhouette with rounded corners for thick vinyl border.
-    2. Adds subtle glossy specular highlight along lit edges.
-    3. Optional folded peeled corner showing paper backing.
-    4. Baked-in physical contact + ambient drop shadow.
+    2. Optional folded peeled corner showing paper backing.
+    3. Baked-in physical contact + ambient drop shadow.
     """
     if image.mode != "RGBA":
         image = image.convert("RGBA")
@@ -202,7 +201,6 @@ def generate_diecut_sticker(
     pad_y = max(shadow_blur * 2, abs(off_y) + shadow_blur * 2)
     new_w, new_h = w + pad_x * 2, h + pad_y * 2
 
-    canvas = Image.new("RGBA", (new_w, new_h), (0, 0, 0, 0))
     s_alpha = sticker_art.split()[3]
     scaled_shadow_alpha = s_alpha.point(lambda p: int(p * shadow_opacity))
     shadow_mask = Image.new("RGBA", (w, h), (18, 14, 10, 0))
@@ -212,8 +210,9 @@ def generate_diecut_sticker(
     blurred_shadow.paste(shadow_mask, (pad_x + off_x, pad_y + off_y), shadow_mask)
     blurred_shadow = blurred_shadow.filter(ImageFilter.GaussianBlur(shadow_blur))
 
-    blurred_shadow.paste(sticker_art, (pad_x, pad_y), sticker_art)
-    return blurred_shadow
+    sticker_layer = Image.new("RGBA", (new_w, new_h), (0, 0, 0, 0))
+    sticker_layer.paste(sticker_art, (pad_x, pad_y))
+    return Image.alpha_composite(blurred_shadow, sticker_layer)
 
 # -------------------------------------------------------------
 # 0D. Washi Tape Strip Generator (cloveric/sticker pattern)
@@ -228,13 +227,12 @@ def generate_washi_tape(
 ) -> Image.Image:
     """
     Generates authentic translucent washi tape with hand-torn zigzag ends,
-    longitudinal paper fibers, and pattern striping.
+    geometric pattern overlays (stripes or grid), and contact shadow.
     """
     rng = np.random.default_rng(seed)
     # Extra horizontal padding for torn teeth
     pad = 16
     full_w = width + pad * 2
-    img = Image.new("RGBA", (full_w, height), (0, 0, 0, 0))
 
     # Build torn tooth zigzag polygon
     teeth = 12
@@ -285,9 +283,11 @@ def generate_washi_tape(
     shadow_mask.putalpha(shadow_alpha)
     res.paste(shadow_mask, (shadow_pad + 2, shadow_pad + 3), shadow_mask)
     res = res.filter(ImageFilter.GaussianBlur(2))
-    res.paste(tape_composite, (shadow_pad, shadow_pad), tape_composite)
 
-    return res
+    # Composite tape on top of shadow cleanly without darkening or squaring opacity
+    tape_layer = Image.new("RGBA", (res_w, res_h), (0, 0, 0, 0))
+    tape_layer.paste(tape_composite, (shadow_pad, shadow_pad))
+    return Image.alpha_composite(res, tape_layer)
 
 # -------------------------------------------------------------
 # 0E. Distressed Rubber Stamp Generator (cloveric/sticker pattern)
@@ -302,6 +302,7 @@ def generate_rubber_stamp(
     """
     Generates a round rubber stamp with concentric rings, centered text,
     curved outer circular text, and distressed paper tooth imperfections.
+    Diameter is clamped to a minimum of 60px to maintain ring proportions.
     """
     diameter = max(60, diameter)
     img = Image.new("RGBA", (diameter, diameter), (0, 0, 0, 0))
