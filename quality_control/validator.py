@@ -36,6 +36,7 @@ class QualityReport:
     black_frame_count: int
     static_hold_warnings: List[str]
     status: str  # 'PASS', 'PASS_WITH_WARNINGS', 'FAIL'
+    contact_sheet_path: Optional[str] = None
     errors: List[str] = field(default_factory=list)
     warnings: List[str] = field(default_factory=list)
 
@@ -126,11 +127,17 @@ class QualityValidator:
             warnings.append(f"True peak exceeds -0.5 dBTP ({peak_db:.2f} dBTP), potential clipping risk.")
         if lufs < -24.0:
             warnings.append(f"Audio is noticeably quieter than -14 LUFS target ({lufs:.1f} LUFS).")
+        elif abs(lufs - (-14.0)) > 2.0:
+            warnings.append(f"Audio loudness {lufs:.1f} LUFS deviates from studio standard -14.0 LUFS.")
 
         # 3. Static Holds & Black Screen Detection
         black_frames = self._detect_black_frames(video_path)
         if black_frames > 0:
             warnings.append(f"Detected {black_frames} black/blank frames in container.")
+
+        # 4. Generate 6x3 Visual Contact Sheet
+        contact_sheet = self.export_contact_sheet(video_path)
+        cs_path_str = str(contact_sheet) if contact_sheet and contact_sheet.exists() else None
 
         # Determine overall status
         status = "PASS"
@@ -150,10 +157,85 @@ class QualityValidator:
             black_frame_count=black_frames,
             static_hold_warnings=[],
             status=status,
+            contact_sheet_path=cs_path_str,
             errors=errors,
             warnings=warnings
         )
         return report
+
+    def export_contact_sheet(
+        self,
+        video_path: Path,
+        output_image: Optional[Path] = None,
+        tile_grid: str = "6x3"
+    ) -> Optional[Path]:
+        """
+        Exports a high-density 6x3 contact sheet representing every beat of the render:
+        ffmpeg -vf "fps=1/3,scale=270:480,tile=6x3"
+        """
+        video_path = Path(video_path)
+        if not video_path.exists():
+            return None
+
+        if output_image is None:
+            output_image = video_path.parent / f"{video_path.stem}_contact_sheet.jpg"
+        output_image = Path(output_image)
+        output_image.parent.mkdir(parents=True, exist_ok=True)
+
+        cmd = [
+            "ffmpeg", "-y", "-i", str(video_path),
+            "-vf", f"fps=1/3,scale=270:480,tile={tile_grid}",
+            "-frames:v", "1",
+            "-q:v", "2",
+            str(output_image)
+        ]
+        res = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        if res.returncode == 0 and output_image.exists():
+            return output_image
+        return None
+
+    def inspect_storyboard(self, storyboard: Any) -> List[str]:
+        """
+        Validates storyboard beats against viral short-form retention criteria:
+        1. Visual changes every 1.5 - 3.5s (average beat duration <= 3.5s, no static hold > 4.0s).
+        2. Top-left headline <= 4 words, punchline <= 3 words.
+        3. Caption capsule <= 4 words (max 5).
+        4. First 1.5s hook presence.
+        """
+        issues = []
+        beats = getattr(storyboard, 'beats', None)
+        if not beats or len(beats) == 0:
+            return ["No visual beats present in storyboard plan."]
+
+        # Hook check
+        if beats[0].start > 1.5:
+            issues.append(f"Hook delayed: First visual beat starts at {beats[0].start}s (> 1.5s).")
+
+        durations = []
+        for b in beats:
+            dur = round(b.end - b.start, 2)
+            durations.append(dur)
+            if dur > 4.0:
+                issues.append(f"Static hold detected in {b.beat_id}: duration {dur}s exceeds 4.0s limit.")
+
+            h_top_words = len(b.headline_top.split())
+            if h_top_words > 4:
+                issues.append(f"Headline top line in {b.beat_id} has {h_top_words} words (max 4 allowed).")
+
+            h_punch_words = len(b.headline_punch.split())
+            if h_punch_words > 3:
+                issues.append(f"Headline punchline in {b.beat_id} has {h_punch_words} words (max 3 allowed).")
+
+            if b.caption_chunk:
+                c_words = len(b.caption_chunk.split())
+                if c_words > 5:
+                    issues.append(f"Caption capsule in {b.beat_id} has {c_words} words (max 4-5 allowed).")
+
+        avg_dur = sum(durations) / max(1, len(durations))
+        if avg_dur > 3.5:
+            issues.append(f"Average beat duration {avg_dur:.2f}s exceeds 3.5s viral pace ceiling.")
+
+        return issues
 
     def _measure_loudness(self, path: Path) -> (float, float):
         cmd = [

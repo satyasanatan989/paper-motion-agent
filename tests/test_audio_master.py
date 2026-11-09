@@ -24,5 +24,25 @@ class TestAudioMaster(unittest.TestCase):
         self.assertEqual(len(bgm), int(24000 * 5.0))
         self.assertTrue(np.max(np.abs(bgm)) <= 1.0)
 
+    def test_beat_foley_and_track(self):
+        pop = self.engine.generate_pop(0.1)
+        self.assertIsInstance(pop, np.ndarray)
+
+        stamp = self.engine.generate_stamp_thud(0.2)
+        self.assertIsInstance(stamp, np.ndarray)
+
+        tick = self.engine.generate_mechanical_tick(0.05)
+        self.assertIsInstance(tick, np.ndarray)
+
+        cues = [
+            {"time": 0.2, "sfx": "pop"},
+            {"time": 0.5, "sfx": "stamp"},
+            {"time": 0.8, "sfx": "tick"},
+            {"time": 1.2, "sfx": "paper_flip"}
+        ]
+        track = self.engine.generate_foley_track(2.0, cues)
+        self.assertIsInstance(track, np.ndarray)
+        self.assertEqual(len(track), int(24000 * 2.0))
+
 if __name__ == '__main__':
     unittest.main()

@@ -16,6 +16,7 @@ try:
     from visual_engine.typography import KineticTypography
     from visual_engine.hyperframes_primitives import HyperFramesPrimitives
     from visual_engine.spring_physics import SpringSolver, SPRING_PRESETS
+    from templates.scenes import render_scene_template
 except ImportError:
     from ..storyboard.generator import StoryboardPlan, ScenePlan
     from .camera import CameraController
@@ -23,11 +24,18 @@ except ImportError:
     from .typography import KineticTypography
     from .hyperframes_primitives import HyperFramesPrimitives
     from .spring_physics import SpringSolver, SPRING_PRESETS
+    from ..templates.scenes import render_scene_template
 
 class DynamicSceneComposer:
     """Assembles full HTML/CSS/JS web stages tailored dynamically to any storyboard."""
 
-    def compose_stage(self, storyboard: StoryboardPlan, output_dir: Path, word_timestamps: Optional[List[Dict[str, Any]]] = None) -> Path:
+    def compose_stage(
+        self,
+        storyboard: StoryboardPlan,
+        output_dir: Path,
+        word_timestamps: Optional[List[Dict[str, Any]]] = None,
+        asset_map: Optional[Dict[str, str]] = None
+    ) -> Path:
         """
         Generates index.html, style.css, and timeline.js into output_dir.
         Returns the path to index.html.
@@ -53,7 +61,7 @@ class DynamicSceneComposer:
                     word_timestamps = []
 
         # 1. Generate HTML
-        html_content = self._generate_html(storyboard)
+        html_content = self._generate_html(storyboard, asset_map=asset_map)
         html_file = output_dir / "index.html"
         with open(html_file, "w", encoding="utf-8") as f:
             f.write(html_content)
@@ -72,30 +80,43 @@ class DynamicSceneComposer:
 
         return html_file
 
-    def _generate_html(self, storyboard: StoryboardPlan) -> str:
+    def _generate_html(self, storyboard: StoryboardPlan, asset_map: Optional[Dict[str, str]] = None) -> str:
         scenes_html = []
-        for idx, scene in enumerate(storyboard.scenes):
-            is_active = " active" if idx == 0 else ""
-            visual_stage_content = self._build_visual_stage_html(scene)
+        asset_map = asset_map or {}
+        if getattr(storyboard, 'beats', None) and len(storyboard.beats) > 0:
+            for idx, beat in enumerate(storyboard.beats):
+                is_active = " active" if idx == 0 else ""
+                beat_markup = render_scene_template(beat, asset_map=asset_map)
+                scene_markup = f"""
+      <!-- BEAT {beat.beat_id}: {html.escape(beat.headline_top)} {html.escape(beat.headline_punch)} -->
+      <section id="{beat.beat_id}" class="scene{is_active}" data-template="{beat.template}">
+        {beat_markup}
+      </section>
+                """
+                scenes_html.append(scene_markup)
+        else:
+            for idx, scene in enumerate(storyboard.scenes):
+                is_active = " active" if idx == 0 else ""
+                visual_stage_content = self._build_visual_stage_html(scene)
 
-            badge_html = KineticTypography.render_chapter_badge(scene.typography.badge)
-            headline_html = KineticTypography.render_headline(
-                scene.typography.headline_sub,
-                scene.typography.headline_main
-            )
-
-            # Metric Box
-            metric_html = ""
-            if scene.keywords and not (getattr(scene, 'metric_title', None) or getattr(scene, 'metric_val', None)):
-                metric_title = scene.title
-                metric_val = scene.keywords[0].upper() if scene.keywords else "VERIFIED"
-                metric_sub = scene.typography.headline_sub
-                metric_html = KineticTypography.render_metric_card(
-                    metric_title, metric_val, metric_sub,
-                    style_mode="flip_counter" if scene.visual_type == "infographic_data" else "standard"
+                badge_html = KineticTypography.render_chapter_badge(scene.typography.badge)
+                headline_html = KineticTypography.render_headline(
+                    scene.typography.headline_sub,
+                    scene.typography.headline_main
                 )
 
-            scene_markup = f"""
+                # Metric Box
+                metric_html = ""
+                if scene.keywords and not (getattr(scene, 'metric_title', None) or getattr(scene, 'metric_val', None)):
+                    metric_title = scene.title
+                    metric_val = scene.keywords[0].upper() if scene.keywords else "VERIFIED"
+                    metric_sub = scene.typography.headline_sub
+                    metric_html = KineticTypography.render_metric_card(
+                        metric_title, metric_val, metric_sub,
+                        style_mode="flip_counter" if scene.visual_type == "infographic_data" else "standard"
+                    )
+
+                scene_markup = f"""
       <!-- SCENE {scene.chapter_num:02d}: {html.escape(scene.title)} -->
       <section id="{scene.scene_id}" class="scene{is_active}" data-visual-type="{scene.visual_type}">
         {badge_html}
@@ -106,8 +127,15 @@ class DynamicSceneComposer:
           {metric_html}
         </div>
       </section>
-            """
-            scenes_html.append(scene_markup)
+                """
+                scenes_html.append(scene_markup)
+
+        # Safely resolve initial caption without assuming storyboard.scenes has items
+        init_caption = ""
+        if getattr(storyboard, 'scenes', None) and len(storyboard.scenes) > 0:
+            init_caption = storyboard.scenes[0].narration
+        elif getattr(storyboard, 'beats', None) and len(storyboard.beats) > 0:
+            init_caption = storyboard.beats[0].voice
 
         return f"""<!DOCTYPE html>
 <html lang="en">
@@ -147,7 +175,7 @@ class DynamicSceneComposer:
     <!-- Synchronized Subtitle Caption Streamer -->
     <div class="caption-streamer">
       <div id="caption-box" class="caption-text">
-        {html.escape(storyboard.scenes[0].narration)}
+        {html.escape(init_caption)}
       </div>
     </div>
 
@@ -900,6 +928,353 @@ html, body {{
   z-index: 25;
 }}
 
+/* Reference Video Typography & Studio Layout Styles */
+.reference-headline-block {{
+  position: absolute;
+  top: 135px;
+  left: 70px;
+  text-align: left;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  pointer-events: none;
+  max-width: 840px;
+}}
+
+.headline-top-line {{
+  font-family: 'Bebas Neue', 'Anton', 'Montserrat', sans-serif;
+  font-size: 56px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #EDE3D1;
+  text-transform: uppercase;
+  line-height: 1.0;
+  text-shadow: 0 4px 14px rgba(0, 0, 0, 0.9);
+}}
+
+.headline-punch-line {{
+  font-family: 'Anton', 'Impact', 'Montserrat', sans-serif;
+  font-size: 94px;
+  font-weight: 900;
+  letter-spacing: 0.03em;
+  color: #F26A2E;
+  text-transform: uppercase;
+  line-height: 0.95;
+  margin-top: 4px;
+  text-shadow: 0 6px 24px rgba(0, 0, 0, 0.95), 0 2px 8px rgba(0, 0, 0, 0.9);
+  animation: springHeadlinePunch 0.52s 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+}}
+
+/* Watermark: @FoodCode */
+.studio-watermark {{
+  position: absolute;
+  top: 65px;
+  right: 60px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: rgba(237, 227, 209, 0.65);
+  background: rgba(14, 11, 8, 0.6);
+  padding: 6px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(237, 227, 209, 0.15);
+  z-index: 35;
+  pointer-events: none;
+}}
+.studio-watermark .watermark-icon {{
+  color: #F26A2E;
+  font-size: 16px;
+}}
+
+/* Studio Capsule Caption: Short 2-4 word chunk */
+.studio-caption-box {{
+  position: absolute;
+  bottom: 110px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(12, 9, 6, 0.95);
+  border: 2px solid rgba(242, 106, 46, 0.7);
+  border-radius: 14px;
+  padding: 14px 28px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.85);
+  z-index: 40;
+  pointer-events: none;
+}}
+
+.studio-caption-text {{
+  font-family: 'Montserrat', sans-serif;
+  font-size: 32px;
+  font-weight: 800;
+  color: #EDE3D1;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}}
+
+.studio-caption-text .caption-highlight {{
+  color: #FACC15;
+  background: rgba(250, 204, 21, 0.2);
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-weight: 900;
+}}
+
+/* Hide legacy paragraph caption streamer when beat templates exist */
+#stage-container:has(.template-notebook-sticker) .caption-streamer,
+#stage-container:has(.template-fullbleed-parallax) .caption-streamer,
+#stage-container:has(.template-object-on-dark) .caption-streamer,
+#stage-container:has(.template-stamp-reveal) .caption-streamer,
+#stage-container:has(.template-compare-pair) .caption-streamer {{
+  display: none !important;
+}}
+
+/* Spring Entry Animations */
+.enter-pop {{
+  animation: springStickerPop 0.55s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+}}
+
+.enter-slam {{
+  animation: springStampSlam 0.60s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+}}
+
+.enter-slide {{
+  animation: springTagSwing 0.65s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+}}
+
+/* Template layout styles */
+.template-notebook-sticker,
+.template-fullbleed-parallax,
+.template-object-on-dark,
+.template-compare-pair,
+.template-cutaway-diagram,
+.template-zoom-lens,
+.template-stamp-reveal,
+.template-endcard {{
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}}
+
+.notebook-page-surface {{
+  position: absolute;
+  top: 320px;
+  left: 80px;
+  right: 80px;
+  bottom: 220px;
+  background: #17120D;
+  border: 2px solid #3A2B1D;
+  border-radius: 18px;
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.85), var(--paper-cutout);
+}}
+
+.stickers-layout-row {{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 30px;
+  width: 100%;
+}}
+
+.notebook-sticker-item {{
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}}
+
+.notebook-sticker-item .sticker-img {{
+  max-width: 480px;
+  max-height: 520px;
+  object-fit: contain;
+  filter: drop-shadow(0 14px 28px rgba(0, 0, 0, 0.75)) drop-shadow(0 0 3px rgba(255, 255, 255, 0.4));
+}}
+
+.notebook-badge-callout {{
+  margin-top: 25px;
+  background: #0E0A07;
+  border: 2px solid #F26A2E;
+  border-radius: 12px;
+  padding: 12px 30px;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}}
+
+.badge-num {{
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 42px;
+  font-weight: 900;
+  color: #F26A2E;
+}}
+
+.badge-unit {{
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 20px;
+  font-weight: 700;
+  color: #EDE3D1;
+}}
+
+/* Object on Dark */
+.object-stage-center {{
+  position: absolute;
+  top: 320px;
+  left: 80px;
+  right: 80px;
+  bottom: 220px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}}
+
+.hero-object-wrapper .hero-object-img {{
+  max-width: 600px;
+  max-height: 600px;
+  object-fit: contain;
+  filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.9));
+}}
+
+/* Stamp Reveal */
+.stamp-stage-center {{
+  position: absolute;
+  top: 300px;
+  left: 80px;
+  right: 80px;
+  bottom: 200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}}
+
+.evidence-doc-wrapper .evidence-doc-img {{
+  max-width: 580px;
+  max-height: 580px;
+  object-fit: contain;
+  filter: var(--paper-cutout);
+}}
+
+.stamp-header-text {{
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 16px;
+  letter-spacing: 0.15em;
+  opacity: 0.85;
+}}
+
+.stamp-main-text {{
+  font-size: 52px;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+}}
+
+.stamp-star-row {{
+  font-size: 18px;
+  letter-spacing: 0.3em;
+}}
+
+/* Compare Pair */
+.compare-columns-container {{
+  position: absolute;
+  top: 320px;
+  left: 60px;
+  right: 60px;
+  bottom: 220px;
+  display: flex;
+  justify-content: space-evenly;
+  align-items: center;
+  gap: 20px;
+}}
+
+.compare-item-column {{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}}
+
+.compare-item-img {{
+  max-width: 380px;
+  max-height: 420px;
+  object-fit: contain;
+  filter: var(--paper-cutout);
+}}
+
+.compare-tag {{
+  margin-top: 15px;
+  background: #110C08;
+  border: 2px solid #ECC94B;
+  border-radius: 10px;
+  padding: 8px 20px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 26px;
+  font-weight: 800;
+  color: #ECC94B;
+}}
+
+/* Fullbleed Parallax */
+.parallax-viewport {{
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}}
+
+.parallax-layer {{
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+}}
+
+/* Endcard */
+.endcard-surface {{
+  position: absolute;
+  top: 300px;
+  left: 80px;
+  right: 80px;
+  bottom: 200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+}}
+
+.endcard-badge-row {{
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}}
+
+.endcard-bell-icon {{
+  font-size: 64px;
+  color: #FACC15;
+  animation: springTagSwing 0.8s infinite alternate ease-in-out;
+}}
+
+.endcard-callout-text {{
+  font-family: 'Anton', sans-serif;
+  font-size: 54px;
+  color: #EDE3D1;
+  letter-spacing: 0.05em;
+}}
+
 {transitions_css}
 
 {HyperFramesPrimitives.get_hyperframes_css_rules()}
@@ -909,36 +1284,65 @@ html, body {{
 
     def _generate_js(self, storyboard: StoryboardPlan, word_timestamps: Optional[List[Dict[str, Any]]] = None) -> str:
         chapters_json = []
-        cur_time = 0.0
-        for scene in storyboard.scenes:
-            scene_start = round(cur_time, 2)
-            scene_end = round(cur_time + scene.duration, 2)
-            cur_time = scene_end
-            chapters_json.append({
-                "id": scene.chapter_num,
-                "start": scene_start,
-                "end": scene_end,
-                "sceneId": scene.scene_id,
-                "caption": scene.narration,
-                "keywords": scene.keywords,
-                "annotation": getattr(scene, 'annotation', None),
-                "paperTransition": getattr(scene, 'paper_transition', None),
-                "cadence": getattr(scene, 'cadence', None) or {
-                    "fps": 12,
-                    "boil": True,
-                    "hold_frames": 2,
-                    "jitter_px": 1.6,
-                    "jitter_deg": 0.45,
-                    "seed": 42 + scene.chapter_num * 101
-                },
-                "colorField": getattr(scene, 'color_field', None) or "charcoal_parchment",
-                "assembleFromEmpty": getattr(scene, 'assemble_from_empty', True),
-                "camera": {
-                    "movement": scene.camera.movement,
-                    "zoomStart": scene.camera.zoom_start,
-                    "zoomEnd": scene.camera.zoom_end
-                }
-            })
+        if getattr(storyboard, 'beats', None) and len(storyboard.beats) > 0:
+            for idx, beat in enumerate(storyboard.beats):
+                chapters_json.append({
+                    "id": idx + 1,
+                    "beatId": beat.beat_id,
+                    "start": beat.start,
+                    "end": beat.end,
+                    "sceneId": beat.beat_id,
+                    "caption": beat.voice,
+                    "keywords": [beat.caption_highlight] if beat.caption_highlight else [],
+                    "annotation": None,
+                    "paperTransition": "slide" if "slide" in beat.sfx else "cut",
+                    "cadence": {
+                        "fps": 12,
+                        "boil": True,
+                        "hold_frames": 2,
+                        "jitter_px": 1.6,
+                        "jitter_deg": 0.45,
+                        "seed": 42 + idx * 101
+                    },
+                    "colorField": "charcoal_parchment",
+                    "assembleFromEmpty": not beat.scene_reuse,
+                    "camera": {
+                        "movement": beat.camera,
+                        "zoomStart": 1.0,
+                        "zoomEnd": 1.06 if "push" in beat.camera else (0.95 if "pull" in beat.camera else 1.0)
+                    }
+                })
+        else:
+            cur_time = 0.0
+            for scene in storyboard.scenes:
+                scene_start = round(cur_time, 2)
+                scene_end = round(cur_time + scene.duration, 2)
+                cur_time = scene_end
+                chapters_json.append({
+                    "id": scene.chapter_num,
+                    "start": scene_start,
+                    "end": scene_end,
+                    "sceneId": scene.scene_id,
+                    "caption": scene.narration,
+                    "keywords": scene.keywords,
+                    "annotation": getattr(scene, 'annotation', None),
+                    "paperTransition": getattr(scene, 'paper_transition', None),
+                    "cadence": getattr(scene, 'cadence', None) or {
+                        "fps": 12,
+                        "boil": True,
+                        "hold_frames": 2,
+                        "jitter_px": 1.6,
+                        "jitter_deg": 0.45,
+                        "seed": 42 + scene.chapter_num * 101
+                    },
+                    "colorField": getattr(scene, 'color_field', None) or "charcoal_parchment",
+                    "assembleFromEmpty": getattr(scene, 'assemble_from_empty', True),
+                    "camera": {
+                        "movement": scene.camera.movement,
+                        "zoomStart": scene.camera.zoom_start,
+                        "zoomEnd": scene.camera.zoom_end
+                    }
+                })
 
         chapters_str = json.dumps(chapters_json, indent=4, ensure_ascii=False)
         wt_str = json.dumps(word_timestamps or [], ensure_ascii=False)

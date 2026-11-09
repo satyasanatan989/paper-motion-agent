@@ -73,6 +73,30 @@ class ScenePlan:
     custom_html: Optional[str] = None
 
 @dataclass
+class BeatSpec:
+    beat_id: str
+    start: float
+    end: float
+    voice: str
+    headline_top: str
+    headline_punch: str
+    caption_chunk: str
+    caption_highlight: str
+    scene_id: str
+    template: str
+    assets: List[Dict[str, Any]] = field(default_factory=list)
+    widget: Optional[Dict[str, Any]] = None
+    stamp: Optional[Dict[str, Any]] = None
+    camera: str = "slow_push_in"
+    sfx: List[str] = field(default_factory=list)
+    scene_reuse: bool = False
+    custom_html: Optional[str] = None
+
+    @property
+    def duration(self) -> float:
+        return round(self.end - self.start, 2)
+
+@dataclass
 class StoryboardPlan:
     project_name: str
     topic: str
@@ -84,6 +108,7 @@ class StoryboardPlan:
     estimated_duration: float
     soundtrack_preset: str = "health_bio"
     scenes: List[ScenePlan] = field(default_factory=list)
+    beats: List[BeatSpec] = field(default_factory=list)
 
     def to_dict(self) -> Dict[str, Any]:
         data = asdict(self)
@@ -373,3 +398,117 @@ class StoryboardGenerator:
             elif ch_num == 4:
                 foley.append(FoleySpec("dharma_bell", 0.5, 0.7))
         return foley
+
+    def validate_beat_rules(self, beats: List[BeatSpec]) -> List[str]:
+        """
+        Validates beat constraints against reference standards:
+        1. Beat duration must be between 1.5s and 3.5s.
+        2. headline_top at most 4 words.
+        3. headline_punch at most 3 words.
+        4. Widget appears only if beat voice line contains a number.
+        5. Never use the same template 3 times in a row unless same scene continuing.
+        """
+        issues = []
+        for i, b in enumerate(beats):
+            dur = b.duration
+            if dur < 1.4 or dur > 3.6:
+                issues.append(f"Beat {b.beat_id}: duration {dur}s outside ideal 1.5–3.5s window")
+            top_words = len(b.headline_top.strip().split())
+            if top_words > 4:
+                issues.append(f"Beat {b.beat_id}: headline_top '{b.headline_top}' exceeds 4 words ({top_words} words)")
+            punch_words = len(b.headline_punch.strip().split())
+            if punch_words > 3:
+                issues.append(f"Beat {b.beat_id}: headline_punch '{b.headline_punch}' exceeds 3 words ({punch_words} words)")
+            if b.widget:
+                has_num = any(char.isdigit() for char in b.voice)
+                if not has_num:
+                    issues.append(f"Beat {b.beat_id}: widget present but voice text contains no number ('{b.voice}')")
+
+            # Check consecutive templates
+            if i >= 2:
+                prev1 = beats[i - 1]
+                prev2 = beats[i - 2]
+                if b.template == prev1.template == prev2.template:
+                    if not (b.scene_reuse and prev1.scene_reuse):
+                        issues.append(f"Beat {b.beat_id}: template '{b.template}' used 3 times consecutively without scene continuation")
+        return issues
+
+    def generate_storyboard_from_beats(
+        self,
+        topic: str,
+        beats: List[BeatSpec],
+        project_name: str = "explainer_production",
+        language: str = "hinglish",
+        genre: str = "science_bio",
+        fps: int = 30
+    ) -> StoryboardPlan:
+        """
+        Builds a full StoryboardPlan from rapid visual beats.
+        Also constructs corresponding ScenePlan entries for backward compatibility.
+        """
+        total_duration = round(beats[-1].end if beats else 0.0, 2)
+        scenes: List[ScenePlan] = []
+
+        for idx, beat in enumerate(beats):
+            ch_num = idx + 1
+            typo = TypographySpec(
+                badge="",
+                headline_main=beat.headline_punch.upper(),
+                headline_sub=beat.headline_top.upper(),
+                highlight_words=[beat.caption_highlight] if beat.caption_highlight else [],
+                animation="word_by_word"
+            )
+            camera = CameraSpec(
+                movement=beat.camera,
+                depth_parallax=True,
+                zoom_start=1.00,
+                zoom_end=1.05 if "push" in beat.camera else (0.96 if "pull" in beat.camera else 1.00),
+                easing="cubic_bezier"
+            )
+            transition = TransitionSpec(
+                type="hard_cut" if "what_if" in genre or "space" in genre else "paper_tear",
+                duration=0.25,
+                direction="center"
+            )
+            foley_cues = [FoleySpec(effect=s, time_offset=0.15, volume=0.7) for s in beat.sfx]
+
+            widget_dict = beat.widget
+            metric_title = beat.widget.get("type", "").upper() if beat.widget else None
+            metric_val = f"{beat.widget.get('value', '')} {beat.widget.get('unit', '')}".strip() if beat.widget else None
+
+            scene = ScenePlan(
+                scene_id=beat.beat_id,
+                chapter_num=ch_num,
+                title=f"{beat.headline_top} - {beat.headline_punch}",
+                duration=beat.duration,
+                narration=beat.voice,
+                visual_type=beat.template,
+                environment=beat.scene_id,
+                background_tone={"primary": "#1A140E"},
+                camera=camera,
+                layers=[],
+                typography=typo,
+                transition=transition,
+                foley=foley_cues,
+                keywords=[beat.caption_highlight] if beat.caption_highlight else [],
+                metric_title=metric_title,
+                metric_val=metric_val,
+                widget=widget_dict,
+                custom_html=beat.custom_html
+            )
+            scenes.append(scene)
+
+        storyboard = StoryboardPlan(
+            project_name=project_name,
+            topic=topic,
+            language=language,
+            genre=genre,
+            aspect_ratio="9:16",
+            resolution={"width": 1080, "height": 1920},
+            fps=fps,
+            estimated_duration=total_duration,
+            soundtrack_preset="curious_explainer" if "what_if" in genre else "health_bio",
+            scenes=scenes,
+            beats=beats
+        )
+        return storyboard

@@ -11,6 +11,11 @@ node_modules/
 .DS_Store
 Thumbs.db
 output/
+projects/**/output/
+assets/cache/
+*.mp4
+*.wav
+*.mp3
 *.lock
 .vork-output.lock
 .coverage

@@ -1,0 +1,131 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "PaperMotionBeat",
+  "description": "Validated specification for an individual 1.5–3.5s visual beat in PaperMotion",
+  "type": "object",
+  "required": [
+    "beat_id",
+    "start",
+    "end",
+    "voice",
+    "headline_top",
+    "headline_punch",
+    "caption_chunk",
+    "caption_highlight",
+    "scene_id",
+    "template",
+    "assets",
+    "camera",
+    "sfx"
+  ],
+  "properties": {
+    "beat_id": {
+      "type": "string",
+      "description": "Unique sequential identifier (e.g. b01, b02)"
+    },
+    "start": {
+      "type": "number",
+      "minimum": 0.0,
+      "description": "Start timestamp in seconds"
+    },
+    "end": {
+      "type": "number",
+      "minimum": 0.0,
+      "description": "End timestamp in seconds (duration must be 1.5–3.5s)"
+    },
+    "voice": {
+      "type": "string",
+      "description": "Spoken voiceover narration line (max ~12 words)"
+    },
+    "headline_top": {
+      "type": "string",
+      "description": "First line of on-screen headline (cream, max ~4 words)"
+    },
+    "headline_punch": {
+      "type": "string",
+      "description": "Second line of headline (orange punch, appears 0.3-0.6s later, max ~3 words)"
+    },
+    "caption_chunk": {
+      "type": "string",
+      "description": "Short caption chunk for mobile retention (2-4 words)"
+    },
+    "caption_highlight": {
+      "type": "string",
+      "description": "The specific keyword to highlight in yellow/red"
+    },
+    "scene_id": {
+      "type": "string",
+      "description": "Identifier of the visual environment/scene"
+    },
+    "scene_reuse": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this beat continues or reuses an existing background scene"
+    },
+    "template": {
+      "type": "string",
+      "enum": [
+        "fullbleed_parallax",
+        "object_on_dark",
+        "notebook_sticker",
+        "compare_pair",
+        "cutaway_diagram",
+        "zoom_lens",
+        "stamp_reveal",
+        "endcard"
+      ],
+      "description": "Visual scene layout template to apply"
+    },
+    "assets": {
+      "type": "array",
+      "description": "Layered cutout assets for this beat",
+      "items": {
+        "type": "object",
+        "required": ["id", "prompt", "layer", "enter"],
+        "properties": {
+          "id": { "type": "string" },
+          "prompt": { "type": "string" },
+          "layer": { "type": "string", "enum": ["bg", "mid", "fg", "overlay"] },
+          "enter": { "type": "string", "enum": ["pop", "slide", "slam", "fade", "none"] }
+        }
+      }
+    },
+    "widget": {
+      "type": ["object", "null"],
+      "description": "Mechanical data widget (only active when number spoken)",
+      "properties": {
+        "type": { "type": "string", "enum": ["flip_counter", "odometer", "meter_bar", "hanging_tag"] },
+        "value": { "type": "string" },
+        "unit": { "type": "string" }
+      }
+    },
+    "stamp": {
+      "type": ["object", "null"],
+      "description": "Rubber stamp overlay (e.g. REPORTED, CASE CLOSED)",
+      "properties": {
+        "text": { "type": "string" },
+        "sub": { "type": "string" },
+        "color": { "type": "string" }
+      }
+    },
+    "camera": {
+      "type": "string",
+      "enum": [
+        "slow_push_in",
+        "fast_push_in",
+        "slow_pull_out",
+        "pan_left",
+        "pan_right",
+        "tilt_up",
+        "tilt_down",
+        "handheld_desk_wander",
+        "static_focus"
+      ]
+    },
+    "sfx": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Sound design triggers for this beat (e.g. paper_flip, pop, stamp, tick)"
+    }
+  }
+}

@@ -25,5 +25,31 @@ class TestQualityControl(unittest.TestCase):
         self.assertIn("errors", d)
         self.assertIn("warnings", d)
 
+    def test_inspect_storyboard_beats(self):
+        from storyboard.generator import StoryboardGenerator, BeatSpec
+        beats = [
+            BeatSpec(
+                beat_id="b01", start=0.0, end=2.5,
+                voice="Kya packaged pani healthy hai?",
+                headline_top="IS IT HEALTHY?", headline_punch="CHECK FACTS",
+                caption_chunk="nariyal pani", caption_highlight="HEALTHY",
+                scene_id="tapri", template="notebook_sticker"
+            ),
+            BeatSpec(
+                beat_id="b02", start=2.5, end=5.2,
+                voice="Main food technologist hoon sach suniye.",
+                headline_top="LAB AUDIT", headline_punch="FOOD CODE",
+                caption_chunk="sach suniye", caption_highlight="TRUTH",
+                scene_id="desk", template="notebook_sticker"
+            )
+        ]
+        storyboard = StoryboardGenerator().generate_storyboard_from_beats(
+            topic="Coconut Water",
+            beats=beats,
+            project_name="qc_test"
+        )
+        issues = self.validator.inspect_storyboard(storyboard)
+        self.assertEqual(len(issues), 0)
+
 if __name__ == '__main__':
     unittest.main()
