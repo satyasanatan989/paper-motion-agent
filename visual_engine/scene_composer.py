@@ -51,6 +51,12 @@ class DynamicSceneComposer:
         with open(js_file, "w", encoding="utf-8") as f:
             f.write(js_content)
 
+        # 4. Copy word_timestamps.json if present in parent directory
+        src_timestamps = output_dir.parent / "word_timestamps.json"
+        if src_timestamps.exists():
+            import shutil
+            shutil.copy(src_timestamps, output_dir / "word_timestamps.json")
+
         return html_file
 
     def _generate_html(self, storyboard: StoryboardPlan) -> str:
@@ -67,7 +73,7 @@ class DynamicSceneComposer:
 
             # Metric Box
             metric_html = ""
-            if scene.keywords:
+            if scene.keywords and not (getattr(scene, 'metric_title', None) or getattr(scene, 'metric_val', None)):
                 metric_title = scene.title
                 metric_val = scene.keywords[0].upper() if scene.keywords else "VERIFIED"
                 metric_sub = scene.typography.headline_sub
@@ -102,16 +108,27 @@ class DynamicSceneComposer:
 
   <div id="stage-container">
     
-    <!-- Procedural Aged Parchment Canvas -->
+    <!-- Layer 0 (Background): Dynamic CSS gradient canvas -->
     <canvas id="parchment-canvas" class="parchment-canvas" width="{storyboard.resolution['width']}" height="{storyboard.resolution['height']}"></canvas>
 
-    <!-- Center Scroll Spine & Scorched Edge Vignette -->
-    <div class="scroll-spine"></div>
-    <div class="scorched-border"></div>
-
-    <!-- Main Animated Content Layer -->
+    <!-- Layer 10 (Midground): Main Animated Content Layer -->
     <div class="content-layer">
       {"".join(scenes_html)}
+    </div>
+
+    <!-- Layer 99 (Foreground Rig): Fixed 2.5D Persistent Paper Rig -->
+    <div class="global-paper-rig">
+      <div class="binder-margin">
+        <div class="binder-hole"></div>
+        <div class="binder-hole"></div>
+        <div class="binder-hole"></div>
+        <div class="binder-hole"></div>
+        <div class="binder-hole"></div>
+        <div class="binder-hole"></div>
+        <div class="binder-hole"></div>
+      </div>
+      <div class="paper-crease-shadow"></div>
+      <div class="paper-grain-overlay"></div>
     </div>
 
     <!-- Synchronized Subtitle Caption Streamer -->
@@ -129,14 +146,14 @@ class DynamicSceneComposer:
 """
 
     def _build_visual_stage_html(self, scene: ScenePlan) -> str:
-        """Constructs vector artwork and depth layers for a scene."""
+        """Constructs vector artwork and depth layers for a scene, including mechanical widgets."""
         vtype = scene.visual_type
         sid = scene.scene_id
 
         # 1. Biological Macro / Health Explainer Stages
         if vtype == "biological_macro" or "Gut" in scene.title or "Grain" in scene.title:
             if "Grain" in scene.title or "Wheat" in scene.title or scene.chapter_num == 2:
-                return f"""
+                base_content = f"""
           <svg id="{sid}-visual" width="760" height="520" viewBox="0 0 760 520" style="filter: var(--paper-cutout);">
             <!-- Wheat Stem & Husk -->
             <path d="M 380 500 Q 380 320 380 180" stroke="#8C6D37" stroke-width="12" fill="none" stroke-linecap="round"/>
@@ -154,10 +171,9 @@ class DynamicSceneComposer:
               <text x="240" y="215" font-family="'Montserrat'" font-size="22" font-weight="800" fill="#744210" text-anchor="middle">ENDOSPERM</text>
               <text x="240" y="245" font-family="'JetBrains Mono'" font-size="16" font-weight="700" fill="#C53030" text-anchor="middle">100% STARCH</text>
             </g>
-          </svg>
-                """
+          </svg>"""
             elif "Acid" in scene.title or scene.chapter_num == 4:
-                return f"""
+                base_content = f"""
           <svg id="{sid}-visual" width="760" height="520" viewBox="0 0 760 520" style="filter: var(--paper-cutout);">
             <!-- Stomach Outline -->
             <path d="M 260 80 Q 200 180 200 320 Q 200 460 380 470 Q 560 460 560 340 Q 560 220 460 160 Q 430 80 430 40 L 350 40 Q 350 80 340 100 Z" fill="#E2C9B3" stroke="#8C4E34" stroke-width="8"/>
@@ -170,10 +186,9 @@ class DynamicSceneComposer:
             </g>
             <circle cx="360" cy="260" r="16" fill="#FF8C00" filter="drop-shadow(0 0 12px #E53E3E)"/>
             <circle cx="390" cy="200" r="10" fill="#FF8C00" filter="drop-shadow(0 0 8px #E53E3E)"/>
-          </svg>
-                """
+          </svg>"""
             else: # Gut Glue Matrix
-                return f"""
+                base_content = f"""
           <svg id="{sid}-visual" width="760" height="520" viewBox="0 0 760 520" style="filter: var(--paper-cutout);">
             <path d="M 220 120 C 140 220 160 380 240 440 C 340 500 500 480 560 380 C 620 280 580 180 480 120 Z" fill="#ECD8BE" stroke="#8C6848" stroke-width="8"/>
             <!-- Viscous Glue Paste -->
@@ -182,12 +197,11 @@ class DynamicSceneComposer:
               <path d="M 320 280 Q 380 360 440 290" stroke="#FFF5F5" stroke-width="8" stroke-linecap="round" fill="none"/>
               <text x="380" y="340" font-family="'Cinzel'" font-size="28" font-weight="900" fill="#744210" text-anchor="middle">STICKY GLUE</text>
             </g>
-          </svg>
-                """
+          </svg>"""
 
         # 2. Cinematic 2.5D Food Hook (Chapter 1)
         elif scene.chapter_num == 1:
-            return f"""
+            base_content = f"""
           <svg id="{sid}-visual" width="760" height="520" viewBox="0 0 760 520" style="filter: var(--paper-cutout);">
             <rect x="130" y="220" width="500" height="260" rx="20" fill="#E8D8BA" stroke="#A88B58" stroke-width="4" stroke-dasharray="12 8"/>
             <!-- Samosa -->
@@ -202,12 +216,11 @@ class DynamicSceneComposer:
               <path d="M 40 180 C 10 130 10 70 40 10 C 70 70 70 130 40 180 Z" fill="#E53E3E" filter="drop-shadow(0 0 16px #DD6B20)"/>
               <path d="M 40 160 C 25 120 25 80 40 30 C 55 80 55 120 40 160 Z" fill="#F6E05E"/>
             </g>
-          </svg>
-            """
+          </svg>"""
 
         # 3. Dramatic Final Verdict
         elif vtype == "dramatic_verdict" or scene.chapter_num == len(scene.title):
-            return f"""
+            base_content = f"""
           <svg id="{sid}-visual" width="760" height="520" viewBox="0 0 760 520" style="filter: var(--paper-cutout);">
             <!-- Wax Seal & Ribbon -->
             <circle cx="380" cy="240" r="160" fill="#8C1D24" stroke="#520D12" stroke-width="8"/>
@@ -215,18 +228,42 @@ class DynamicSceneComposer:
             <text x="380" y="225" font-family="'Cinzel'" font-size="34" font-weight="900" fill="#ECC94B" text-anchor="middle">VERDICT</text>
             <text x="380" y="265" font-family="'Montserrat'" font-size="20" font-weight="800" fill="#FFFDF8" text-anchor="middle">CONSCIOUS EATING</text>
             <path d="M 280 370 L 320 470 L 380 430 L 440 470 L 480 370 Z" fill="#520D12"/>
-          </svg>
-            """
+          </svg>"""
 
         # 4. Default Vector Infographic
         else:
-            return f"""
+            base_content = f"""
           <svg id="{sid}-visual" width="760" height="520" viewBox="0 0 760 520" style="filter: var(--paper-cutout);">
             <rect x="80" y="80" width="600" height="360" rx="16" fill="#F3E5CE" stroke="#8C6D37" stroke-width="6"/>
             <circle cx="380" cy="260" r="100" fill="#ECC94B" stroke="#744210" stroke-width="4"/>
             <text x="380" y="270" font-family="'Cinzel'" font-size="32" font-weight="900" fill="#2D241E" text-anchor="middle">{html.escape(scene.title.upper())}</text>
-          </svg>
-            """
+          </svg>"""
+
+        # Inject reusable HTML block for OdometerWidget populated with scene.metric_title and scene.metric_val
+        odometer_block = self.render_odometer_widget(
+            metric_title=getattr(scene, 'metric_title', None) or (scene.keywords[0].upper() if scene.keywords else "INDEX"),
+            metric_val=getattr(scene, 'metric_val', None) or "100%",
+            widget_id=f"{sid}-odometer"
+        ) if (getattr(scene, 'metric_title', None) or getattr(scene, 'metric_val', None)) else ""
+
+        if odometer_block:
+            return f"{base_content}\n{odometer_block}"
+        return base_content
+
+    @staticmethod
+    def render_odometer_widget(metric_title: str, metric_val: str, widget_id: str = "odometer-widget") -> str:
+        """Reusable mechanical odometer data widget populated with metric_title and metric_val."""
+        val_str = str(metric_val).strip()
+        digit_spans = "".join(f'<span class="odometer-digit">{html.escape(c)}</span>' for c in val_str)
+        return f"""
+          <div class="odometer-widget" id="{html.escape(widget_id)}">
+            <div class="odometer-title">{html.escape(metric_title.upper())}</div>
+            <div class="odometer-value-box">
+              <div class="odometer-dial">
+                {digit_spans}
+              </div>
+            </div>
+          </div>"""
 
     def _generate_css(self, storyboard: StoryboardPlan) -> str:
         font_imports = KineticTypography.get_font_imports()
@@ -238,6 +275,8 @@ class DynamicSceneComposer:
   --bg-parchment: #1A140E;
   --ink-primary: #FFFDF8;
   --ink-secondary: #E2D3B8;
+  --cream-warm: #F4EFE6;
+  --accent-burnt-orange: #FF6B00;
   --accent-gold: #ECC94B;
   --accent-crimson: #8C1D24;
   --accent-acid: #E53E3E;
@@ -273,41 +312,18 @@ html, body {{
   box-shadow: 0 0 100px rgba(0, 0, 0, 0.95);
 }}
 
-/* Background Canvas */
-.parchment-canvas {{
+/* Layer 0 (Background): Dynamic CSS gradient canvas */
+#parchment-canvas, .parchment-canvas {{
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: 1;
+  z-index: 0;
+  background: radial-gradient(circle at 50% 45%, #241D17 0%, #15110E 65%, #0B0907 100%);
 }}
 
-/* Book Spine Crease */
-.scroll-spine {{
-  position: absolute;
-  top: 0;
-  left: {storyboard.resolution['width'] // 2 - 3}px;
-  width: 6px;
-  height: 100%;
-  background: linear-gradient(to right, rgba(0,0,0,0.5), rgba(0,0,0,0.1) 40%, rgba(255,255,255,0.08) 60%, rgba(0,0,0,0.6));
-  z-index: 5;
-  pointer-events: none;
-  opacity: 0.85;
-}}
-
-/* Scorched Edge Vignette */
-.scorched-border {{
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  box-shadow: inset 0 0 140px 60px rgba(10, 5, 2, 0.92), inset 0 0 50px 20px rgba(0, 0, 0, 0.98);
-  z-index: 6;
-  pointer-events: none;
-}}
-
+/* Layer 10 (Midground): Main Animated Content Layer */
 .content-layer {{
   position: absolute;
   top: 0;
@@ -315,6 +331,61 @@ html, body {{
   width: 100%;
   height: 100%;
   z-index: 10;
+}}
+
+/* Layer 99 (Foreground Rig): Fixed 2.5D Persistent Paper Rig */
+.global-paper-rig {{
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 99;
+  pointer-events: none;
+}}
+
+.binder-margin {{
+  position: absolute;
+  top: 0;
+  left: 36px;
+  width: 44px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  align-items: center;
+  pointer-events: none;
+}}
+
+.binder-hole {{
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #0E0B08;
+  box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.95), 0 1px 2px rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}}
+
+.paper-crease-shadow {{
+  position: absolute;
+  top: 0;
+  left: 62%;
+  width: 16px;
+  height: 100%;
+  background: linear-gradient(to right, rgba(0,0,0,0.55), rgba(0,0,0,0.12) 40%, rgba(255,255,255,0.06) 60%, rgba(0,0,0,0.45));
+  pointer-events: none;
+  opacity: 0.85;
+}}
+
+.paper-grain-overlay {{
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  opacity: 0.12;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
 }}
 
 .scene {{
@@ -341,41 +412,57 @@ html, body {{
 }}
 
 .chapter-badge {{
+  position: absolute;
+  top: 125px;
+  left: 110px;
   font-family: 'JetBrains Mono', monospace;
-  font-size: 21px;
+  font-size: 19px;
   font-weight: 800;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: #FFFDF8;
   background: rgba(18, 12, 8, 0.95);
-  padding: 14px 34px;
+  padding: 10px 24px;
   border-radius: 999px;
   box-shadow: var(--paper-cutout-sm);
   border: 2px solid var(--accent-gold);
-  margin-bottom: 28px;
+  z-index: 15;
 }}
 
+/* 2-Tier Kinetic Typography System locked to top-left (x: 110px, y: 180px) */
 .headline-wrap {{
-  text-align: center;
-  margin-bottom: 30px;
+  position: absolute;
+  top: 180px;
+  left: 110px;
+  text-align: left;
+  z-index: 15;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  pointer-events: none;
+  max-width: 860px;
 }}
 
 .headline-sub {{
-  font-family: 'Cinzel', serif;
-  font-size: 24px;
-  font-weight: 700;
-  letter-spacing: 0.22em;
-  color: var(--accent-gold);
-  margin-bottom: 8px;
+  font-family: 'Bebas Neue', 'Montserrat', sans-serif;
+  font-size: 32px;
+  font-weight: 400;
+  letter-spacing: 0.14em;
+  color: var(--cream-warm);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.85);
 }}
 
 .headline-main {{
-  font-family: 'Montserrat', sans-serif;
-  font-size: 48px;
+  font-family: 'Impact', 'Montserrat', sans-serif;
+  font-size: 64px;
   font-weight: 900;
-  letter-spacing: 0.04em;
-  color: #FFFDF8;
-  text-shadow: 0 4px 14px rgba(0, 0, 0, 0.7);
+  letter-spacing: 0.02em;
+  color: var(--accent-burnt-orange);
+  text-transform: uppercase;
+  line-height: 1.05;
+  text-shadow: 0 6px 28px rgba(0, 0, 0, 0.95), 0 2px 8px rgba(0, 0, 0, 0.9);
 }}
 
 .visual-stage {{
@@ -386,6 +473,98 @@ html, body {{
   align-items: center;
   justify-content: center;
   position: relative;
+}}
+
+/* Mechanical Data Widgets: Odometer */
+.odometer-widget {{
+  position: absolute;
+  bottom: 180px;
+  right: 80px;
+  background: #140E0A;
+  border: 3px solid var(--accent-burnt-orange);
+  border-radius: 12px;
+  padding: 14px 24px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.85), inset 0 2px 6px rgba(0, 0, 0, 0.9);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 20;
+  filter: var(--paper-cutout-sm);
+}}
+
+.odometer-title {{
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  color: var(--cream-warm);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}}
+
+.odometer-value-box {{
+  background: #0B0806;
+  border: 2px solid #5A4328;
+  border-radius: 6px;
+  padding: 8px 16px;
+  display: flex;
+  gap: 6px;
+}}
+
+.odometer-dial {{
+  display: flex;
+  gap: 6px;
+}}
+
+.odometer-digit {{
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 38px;
+  font-weight: 900;
+  color: var(--accent-burnt-orange);
+  background: #1B130D;
+  padding: 4px 10px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 107, 0, 0.35);
+  text-shadow: 0 0 12px rgba(255, 107, 0, 0.45);
+}}
+
+/* Mechanical Data Widgets: Hanging Tag */
+.hanging-tag-widget {{
+  position: absolute;
+  top: 140px;
+  right: 80px;
+  background: var(--cream-warm);
+  color: #1A140E;
+  padding: 12px 24px;
+  border: 2px solid #8C6D37;
+  border-radius: 4px 16px 16px 4px;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 26px;
+  letter-spacing: 0.1em;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+  transform-origin: top center;
+  z-index: 20;
+}}
+
+/* Mechanical Data Widgets: Meter Bar */
+.meter-bar-widget {{
+  position: absolute;
+  bottom: 180px;
+  left: 110px;
+  width: 320px;
+  background: #140E0A;
+  border: 2px solid var(--accent-gold);
+  border-radius: 8px;
+  padding: 10px 16px;
+  z-index: 20;
+}}
+
+.meter-bar-fill {{
+  height: 14px;
+  background: linear-gradient(90deg, var(--accent-gold), var(--accent-burnt-orange));
+  border-radius: 4px;
+  width: 75%;
+  transition: width 1s ease-out;
 }}
 
 /* Metric Box */
@@ -463,8 +642,8 @@ html, body {{
 }}
 
 .caption-text span.highlight {{
-  color: var(--accent-gold);
-  background: rgba(236, 201, 75, 0.22);
+  color: var(--accent-burnt-orange);
+  background: rgba(255, 107, 0, 0.22);
   padding: 3px 8px;
   border-radius: 6px;
 }}
@@ -554,6 +733,18 @@ html, body {{
       }}
     }})
     .catch(() => {{}});
+
+  // Word-level audio synchronization for millisecond-accurate CSS transitions
+  let wordTimestamps = [];
+  fetch('word_timestamps.json')
+    .then(r => r.json())
+    .then(data => {{ if (Array.isArray(data)) wordTimestamps = data; }})
+    .catch(() => {{
+      fetch('../word_timestamps.json')
+        .then(r => r.json())
+        .then(data => {{ if (Array.isArray(data)) wordTimestamps = data; }})
+        .catch(() => {{}});
+    }});
 
   // 3. Camera System Runtime
   {cam_runtime}

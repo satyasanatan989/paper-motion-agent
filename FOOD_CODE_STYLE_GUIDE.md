@@ -61,7 +61,7 @@ Food Code transforms complex nutritional physiology, biochemistry, and food indu
 
 ## 3. Typographic Hierarchy & Vertical 9:16 Geometry
 
-All typography must respect social mobile safe areas (120px top header clearance for platform chrome, 240px bottom clearance for engagement icons and caption bars).
+All typography must respect social mobile safe areas (120px top header clearance for platform chrome, 240px bottom clearance for engagement icons and caption bars). Screen typography follows a strict 2-tier system locked to top-left coordinates ($x: 110\text{px}, y: 180\text{px}$).
 
 ```
 ┌───────────────────────── 1080 px ─────────────────────────┐
@@ -69,21 +69,22 @@ All typography must respect social mobile safe areas (120px top header clearance
 │   [ SAFE MARGIN TOP: 120px - Story / Reel Chrome Area ]   │
 │                                                           │
 │   ┌───────────────────────────────────────────────────┐   │
-│   │  ● FOOD CODE • BRAND BADGE (Top Center)           │   │ 140 px
+│   │  ● CHAPTER 03 • DIGESTIVE PHYSIOLOGY              │   │ 125 px (.chapter-badge)
 │   └───────────────────────────────────────────────────┘   │
 │                                                           │
 │   ┌───────────────────────────────────────────────────┐   │
-│   │  CHAPTER 03 • CORE MECHANISM                      │   │ 280 px
-│   │  THE GUT GLUE MATRIX                              │   │ (Headline)
+│   │  THE GUT GLUE MATRIX                              │   │ 180 px (.headline-sub, max 4 words)
+│   │  STICKY CRISIS                                    │   │ (.headline-main, max 3 words)
 │   └───────────────────────────────────────────────────┘   │
-│                                                           │
 │                                                           │
 │          [ SCIENTIFIC 3D / 2.5D MACRO STAGE ]             │
 │                                                           │
+│          [ MECHANICAL DATA WIDGETS ]                      │
+│          ● Odometer Dial / Hanging Tag / Meter Bar        │
 │                                                           │
 │   ┌───────────────────────────────────────────────────┐   │
-│   │  "In the stomach, water and maida react to form   │   │ 1420 px
-│   │   a <span class="highlight">dense adhesive paste</span>" │   │ (Subtitles)
+│   │  "In the stomach, water and maida react to form   │   │ 1740 px
+│   │   a <span class="highlight">dense adhesive paste</span>" │   │ (Word-sync subtitles)
 │   └───────────────────────────────────────────────────┘   │
 │                                                           │
 │   [ SAFE MARGIN BOTTOM: 240px - Social UI & Thumb Area ]  │
@@ -91,20 +92,29 @@ All typography must respect social mobile safe areas (120px top header clearance
 └───────────────────────────────────────────────────────────┘
 ```
 
-### Font Pairings:
-1. **Headlines (`.headline-main`)**:
-   - Font: `Bebas Neue` / `Cinzel` (Condensed Uppercase).
-   - Size: $54\text{px} - 68\text{px}$, Tracking $+2\text{px}$, Line-height $1.1$.
-   - Drop shadow: `0 4px 24px rgba(0, 0, 0, 0.9)`.
-2. **Chapter Badges (`.headline-sub`)**:
-   - Font: `Montserrat` (Weight: 800 ExtraBold).
-   - Size: $15\text{px} - 18\text{px}$, Tracking $+4\text{px}$, Color: `var(--fc-burnt-orange)`.
-3. **Narration Subtitles (`.subtitle-text`)**:
-   - Font: `Montserrat` / `Rozha One` (Latin + Devanagari Hindi code-switching).
-   - Size: $34\text{px} - 40\text{px}$, Line-height $1.35$.
-   - Highlighting: Dynamic burnt-orange glow (`text-shadow: 0 0 14px rgba(255, 107, 0, 0.6)`).
-4. **Data Counters (`.flip-tile`)**:
-   - Font: `JetBrains Mono` / `Cinzel` in mechanical split-flap tiles.
+### Font Pairings & Kinetic Typography System:
+1. **2-Tier Headline System (Top-Left Locked at x: 110px, y: 180px)**:
+   - **`headline-sub` (Context/Category)**:
+     - Font: `Bebas Neue` (Condensed Sans).
+     - Color: Warm Cream (`#F4EFE6`).
+     - Constraint: **STRICTLY MAXIMUM 4 WORDS**.
+   - **`headline-main` (Core Punch)**:
+     - Font: `Impact` (Heavy Display).
+     - Color: Burnt Orange (`#FF6B00`).
+     - Drop shadow: Heavy multi-plane shadow (`0 6px 28px rgba(0, 0, 0, 0.95), 0 2px 8px rgba(0, 0, 0, 0.9)`).
+     - Constraint: **STRICTLY MAXIMUM 3 WORDS**.
+   - **Rule**: NEVER generate full-sentence captions for the screen. Full sentences belong exclusively to audio voiceover and bottom word-sync subtitle streamer.
+
+2. **Chapter Badges (`.chapter-badge`)**:
+   - Position: Locked above headline at $x: 110\text{px}, y: 125\text{px}$.
+   - Font: `JetBrains Mono` (Weight: 800 ExtraBold).
+   - Size: $19\text{px}$, Tracking $+0.14\text{em}$, Gold bordered pill.
+
+3. **Mechanical Data Widgets (Keyword-Triggered)**:
+   - **Odometer Widget (`odometer`)**: Rolling mechanical digit dial for metrics, transit hours, percentages, or milligrams.
+   - **Hanging Tag Widget (`hanging_tag`)**: Swinging cardboard tag for hazard warning or classification stamps.
+   - **Meter Bar Widget (`meter_bar`)**: Horizontal gradient bar for risk concentration and nutritional ratios.
+   - All widgets are bound to exact spoken trigger keywords via `word_timestamps.json`.
 
 ---
 
@@ -127,7 +137,7 @@ All typography must respect social mobile safe areas (120px top header clearance
 - A visual event is not just text appearing. Examples:
   - A wheat kernel mechanically peeling outward into bran, germ, and starch.
   - A pool of gastric acid boiling and breaching the lower esophageal valve.
-  - A split-flap counter rapidly spinning from $0$ to $50\text{ hours}$.
+  - A mechanical odometer rapidly ticking from $0$ to $50\text{ hours}$ when "transit time" is spoken.
 
 ### Rule 4: Use Depth, Perspective & Camera Movement Wherever Appropriate
 - Always separate visual elements into 3 distinct parallax depth planes ($0.1\times$ background drift, $0.5\times$ midground motion, $1.4\times$ foreground particles).
@@ -138,11 +148,11 @@ All typography must respect social mobile safe areas (120px top header clearance
 ### Rule 6: Use 3D Scientific Visualizations for Biological Processes
 - Render organ cross-sections (stomach rugae, pyloric sphincter, villi micro-fingers) rather than generic cartoon clipart.
 
-### Rule 7: Use Typography to Emphasize Important Concepts, Not Fill Space
-- Subtitles must be concise and word-synchronized. Never display walls of paragraphs.
+### Rule 7: Strictly Enforce 2-Tier Kinetic Headlines (No Full Sentences on Screen)
+- Headlines must strictly be 2 tiers: `setup_text` (max 4 words) and `punch_text` (max 3 words). Never display paragraph walls or full narration sentences on the visual stage. Spoken audio is synced word-for-word in the subtitle streamer.
 
 ### Rule 8: Strategic Use of Burnt Orange
-- Reserve burnt-orange accents for the single most important concept per second (the keyword, the chemical bond, the rising acid).
+- Reserve burnt-orange accents for the single most important concept per second (the keyword, the chemical bond, the rising acid, the headline main punch).
 
 ### Rule 9: Narratively Motivated Transitions
 - Transitions must match the physics of the narration: downward camera tilt when food is swallowed; paper tear when grain is stripped; heat wipe when temperature rises.

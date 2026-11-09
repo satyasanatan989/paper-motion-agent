@@ -8,11 +8,61 @@ Generates the authentic MeanwhileMayank / Vox documentary aesthetic:
 
 import math
 import numpy as np
-from PIL import Image, ImageDraw, ImageFilter, ImageFont
+from PIL import Image, ImageDraw, ImageFilter, ImageFont, ImageChops
 from pathlib import Path
 
 out_dir = Path(__file__).parent
 out_dir.mkdir(parents=True, exist_ok=True)
+
+# -------------------------------------------------------------
+# 0. 2.5D Articulated Cardboard Paperizer (Cardboard Edge + Hard-Angled Shadow)
+# -------------------------------------------------------------
+def paperize_cutout(
+    image: Image.Image,
+    inner_border_color: tuple = (244, 239, 230),  # #F4EFE6 warm cream
+    inner_border_px: int = 2,
+    shadow_offset: tuple = (10, 16),
+    shadow_blur: int = 12,
+    shadow_opacity: float = 0.45
+) -> Image.Image:
+    """
+    Applies authentic tactile 2.5D papercraft cardboard post-processing:
+    1. 2px warm cream (#F4EFE6) inner border to simulate cardboard thickness.
+    2. Hard-angled, baked-in drop shadow (offset=(10, 16), blur=12, opacity=0.45)
+       onto a slightly expanded transparent canvas.
+    """
+    if image.mode != "RGBA":
+        image = image.convert("RGBA")
+
+    w, h = image.size
+    alpha = image.split()[3]
+
+    # 1. Inner border (simulate cardboard edge thickness)
+    eroded = alpha.filter(ImageFilter.MinFilter(3 if inner_border_px <= 1 else 5))
+    border_mask = ImageChops.subtract(alpha, eroded)
+    cream_fill = Image.new("RGBA", (w, h), (*inner_border_color, 255))
+    cardboard = image.copy()
+    cardboard.paste(cream_fill, (0, 0), border_mask)
+
+    # 2. Hard-angled baked-in drop shadow onto expanded canvas
+    off_x, off_y = shadow_offset
+    pad_x = max(shadow_blur * 2, abs(off_x) + shadow_blur * 2)
+    pad_y = max(shadow_blur * 2, abs(off_y) + shadow_blur * 2)
+    new_w, new_h = w + pad_x * 2, h + pad_y * 2
+
+    shadow_canvas = Image.new("RGBA", (new_w, new_h), (0, 0, 0, 0))
+    c_alpha = cardboard.split()[3]
+    s_alpha = c_alpha.point(lambda p: int(p * shadow_opacity))
+    s_silhouette = Image.new("RGBA", (w, h), (0, 0, 0, 255))
+    s_silhouette.putalpha(s_alpha)
+    shadow_canvas.paste(s_silhouette, (pad_x + off_x, pad_y + off_y), s_silhouette)
+
+    # Apply Gaussian blur to shadow
+    blurred_shadow = shadow_canvas.filter(ImageFilter.GaussianBlur(shadow_blur))
+
+    # 3. Paste cardboard cutout on top
+    blurred_shadow.paste(cardboard, (pad_x, pad_y), cardboard)
+    return blurred_shadow
 
 # -------------------------------------------------------------
 # 1. Dark Journal Notebook Canvas (with Binder Holes & Spine Crease)
@@ -166,104 +216,123 @@ def make_ramen_noodles_cutout():
     print(f"Created: {out_path.name}")
 
 # -------------------------------------------------------------
-# 4. 3D Anatomical Stomach Cross-Section Cutout
+# 4. 3D Anatomical Stomach Cross-Section & Articulated Cutouts
 # -------------------------------------------------------------
 def make_stomach_anatomy_cutout():
     w, h = 650, 750
-    img = Image.new("RGBA", (w, h), (0, 0, 0, 0))
-    draw = ImageDraw.Draw(img)
-    
-    # Outer muscular wall (Deep burgundy with paper cutout rim)
     wall_poly = [
         (330, 40), (380, 40), (410, 130), (420, 200),
         (540, 240), (610, 360), (610, 520), (560, 660),
         (460, 720), (320, 720), (180, 660), (100, 520),
         (100, 360), (220, 250), (290, 190), (300, 120), (330, 40)
     ]
-    
-    # White papercut border
-    draw.polygon(wall_poly, fill=(70, 20, 28, 255), outline=(245, 235, 220, 240), width=4)
-    
-    # Inner gastric lumen cavity (Dark velvet)
     lumen_poly = [
         (340, 90), (370, 90), (390, 180), (510, 260),
         (560, 370), (560, 500), (500, 630), (340, 670),
         (220, 620), (150, 500), (150, 370), (260, 270), (310, 180), (340, 90)
     ]
-    draw.polygon(lumen_poly, fill=(28, 8, 12, 255), outline=(139, 53, 36, 255), width=3)
-    
-    # Rugal folds (corrugated muscle ridges)
+
+    # A. Peripheral Framing Element: Outer Muscular Wall Frame
+    wall_img = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    w_draw = ImageDraw.Draw(wall_img)
+    w_draw.polygon(wall_poly, fill=(70, 20, 28, 255), outline=(245, 235, 220, 240), width=4)
+    paperized_wall = paperize_cutout(wall_img)
+    wall_path = out_dir / "stomach_wall_frame.png"
+    paperized_wall.save(wall_path, "PNG")
+    print(f"Created: {wall_path.name}")
+
+    # B. Hero Element: Inner Lumen, Rugal Folds & Acid Pool
+    lumen_img = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    l_draw = ImageDraw.Draw(lumen_img)
+    l_draw.polygon(lumen_poly, fill=(28, 8, 12, 255), outline=(139, 53, 36, 255), width=3)
     for y_offset in range(300, 580, 45):
         ridge_pts = [(180, y_offset), (260, y_offset + 30), (350, y_offset - 10), (450, y_offset + 25), (530, y_offset)]
-        draw.line(ridge_pts, fill=(180, 60, 45, 200), width=8)
-        
-    # Bubbling Acid / Chyme Pool in fundus & antrum
-    draw.ellipse([180, 520, 520, 660], fill=(242, 140, 40, 220), outline=(255, 107, 0, 255), width=3)
-    # Acid bubbles
-    draw.circle((260, 570), 12, fill=(255, 245, 220, 230))
-    draw.circle((380, 550), 16, fill=(255, 245, 220, 230))
-    draw.circle((440, 590), 14, fill=(255, 245, 220, 230))
-    
-    # Paper cutout drop shadow
-    shadow = Image.new("RGBA", (w, h), (0, 0, 0, 0))
-    s_draw = ImageDraw.Draw(shadow)
-    s_draw.polygon([(px+6, py+14) for px, py in wall_poly], fill=(0, 0, 0, 190))
-    shadow = shadow.filter(ImageFilter.GaussianBlur(16))
-    
-    final_stomach = Image.alpha_composite(shadow, img)
-    out_path = out_dir / "stomach_anatomy_cutout.png"
-    final_stomach.save(out_path, "PNG")
-    print(f"Created: {out_path.name}")
+        l_draw.line(ridge_pts, fill=(180, 60, 45, 200), width=8)
+    l_draw.ellipse([180, 520, 520, 660], fill=(242, 140, 40, 220), outline=(255, 107, 0, 255), width=3)
+    l_draw.circle((260, 570), 12, fill=(255, 245, 220, 230))
+    l_draw.circle((380, 550), 16, fill=(255, 245, 220, 230))
+    l_draw.circle((440, 590), 14, fill=(255, 245, 220, 230))
+    paperized_lumen = paperize_cutout(lumen_img)
+    lumen_path = out_dir / "stomach_lumen_hero.png"
+    paperized_lumen.save(lumen_path, "PNG")
+    print(f"Created: {lumen_path.name}")
+
+    # C. Full Composite Cutout
+    comp_img = Image.alpha_composite(wall_img, lumen_img)
+    paperized_comp = paperize_cutout(comp_img)
+    comp_path = out_dir / "stomach_anatomy_cutout.png"
+    paperized_comp.save(comp_path, "PNG")
+    print(f"Created: {comp_path.name}")
 
 # -------------------------------------------------------------
-# 5. Gourmet Balanced Ramen Bowl Cutout (Toppings & Egg)
+# 5. Gourmet Balanced Ramen Bowl (Hero + Peripheral Framing)
 # -------------------------------------------------------------
 def make_balanced_bowl_cutout():
     w, h = 750, 750
-    img = Image.new("RGBA", (w, h), (0, 0, 0, 0))
-    draw = ImageDraw.Draw(img)
-    
     cx, cy = 375, 420
-    # Ceramic bowl rim
-    draw.ellipse([cx - 320, cy - 240, cx + 320, cy + 240], fill=(24, 20, 18, 255), outline=(245, 235, 220, 240), width=4)
-    draw.ellipse([cx - 290, cy - 210, cx + 290, cy + 210], fill=(120, 60, 22, 255), outline=(242, 140, 40, 255), width=3)
-    
-    # Noodle curls in broth
+
+    # A. Peripheral Framing Element: Ceramic Bowl Rim
+    bowl_img = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    b_draw = ImageDraw.Draw(bowl_img)
+    b_draw.ellipse([cx - 320, cy - 240, cx + 320, cy + 240], fill=(24, 20, 18, 255), outline=(245, 235, 220, 240), width=4)
+    b_draw.ellipse([cx - 290, cy - 210, cx + 290, cy + 210], fill=(120, 60, 22, 255), outline=(242, 140, 40, 255), width=3)
+    paperized_bowl = paperize_cutout(bowl_img)
+    bowl_path = out_dir / "bowl_frame.png"
+    paperized_bowl.save(bowl_path, "PNG")
+    print(f"Created: {bowl_path.name}")
+
+    # B. Hero Element: Fresh Ingredients (Egg, Greens, Noodles, Carrots)
+    ing_img = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    i_draw = ImageDraw.Draw(ing_img)
     for rad in range(60, 220, 40):
-        draw.arc([cx - rad, cy - int(rad*0.7), cx + rad, cy + int(rad*0.7)], start=0, end=360, fill=(244, 208, 111, 230), width=7)
-        
-    # Half Soft-Boiled Egg (Hero Right)
+        i_draw.arc([cx - rad, cy - int(rad*0.7), cx + rad, cy + int(rad*0.7)], start=0, end=360, fill=(244, 208, 111, 230), width=7)
     egg_cx, egg_cy = cx + 110, cy - 30
-    draw.ellipse([egg_cx - 65, egg_cy - 85, egg_cx + 65, egg_cy + 85], fill=(250, 245, 238, 255), outline=(220, 210, 195, 255), width=3)
-    # Liquid Golden Yolk
-    draw.circle((egg_cx, egg_cy + 10), 40, fill=(242, 140, 40, 255))
-    draw.circle((egg_cx - 10, egg_cy + 5), 12, fill=(255, 210, 80, 240)) # Specular gleam
-    
-    # Fresh Bok Choy Greens (Hero Left)
+    i_draw.ellipse([egg_cx - 65, egg_cy - 85, egg_cx + 65, egg_cy + 85], fill=(250, 245, 238, 255), outline=(220, 210, 195, 255), width=3)
+    i_draw.circle((egg_cx, egg_cy + 10), 40, fill=(242, 140, 40, 255))
+    i_draw.circle((egg_cx - 10, egg_cy + 5), 12, fill=(255, 210, 80, 240))
     for leaf_angle in [-40, -15, 10]:
         lx = cx - 140 + int(math.cos(math.radians(leaf_angle)) * 40)
         ly = cy - 40 + int(math.sin(math.radians(leaf_angle)) * 30)
-        draw.ellipse([lx - 55, ly - 80, lx + 55, ly + 80], fill=(45, 106, 79, 255), outline=(82, 183, 136, 255), width=2)
-        # White stem
-        draw.line([(lx, ly + 70), (lx, ly - 30)], fill=(235, 245, 235, 255), width=8)
-        
-    # Sliced Carrot Ribbons
-    draw.rounded_rectangle([cx - 30, cy + 80, cx + 45, cy + 105], radius=6, fill=(232, 93, 4, 255))
-    draw.rounded_rectangle([cx + 20, cy + 110, cx + 90, cy + 130], radius=6, fill=(232, 93, 4, 255))
-    
-    # Paper cutout drop shadow
-    shadow = Image.new("RGBA", (w, h), (0, 0, 0, 0))
-    s_draw = ImageDraw.Draw(shadow)
-    s_draw.ellipse([cx - 315, cy - 225, cx + 325, cy + 255], fill=(0, 0, 0, 210))
-    shadow = shadow.filter(ImageFilter.GaussianBlur(22))
-    
-    final_bowl = Image.alpha_composite(shadow, img)
-    out_path = out_dir / "balanced_bowl_cutout.png"
-    final_bowl.save(out_path, "PNG")
-    print(f"Created: {out_path.name}")
+        i_draw.ellipse([lx - 55, ly - 80, lx + 55, ly + 80], fill=(45, 106, 79, 255), outline=(82, 183, 136, 255), width=2)
+        i_draw.line([(lx, ly + 70), (lx, ly - 30)], fill=(235, 245, 235, 255), width=8)
+    i_draw.rounded_rectangle([cx - 30, cy + 80, cx + 45, cy + 105], radius=6, fill=(232, 93, 4, 255))
+    i_draw.rounded_rectangle([cx + 20, cy + 110, cx + 90, cy + 130], radius=6, fill=(232, 93, 4, 255))
+    paperized_ing = paperize_cutout(ing_img)
+    ing_path = out_dir / "bowl_ingredients_hero.png"
+    paperized_ing.save(ing_path, "PNG")
+    print(f"Created: {ing_path.name}")
+
+    # C. Full Composite Cutout
+    comp_bowl = Image.alpha_composite(bowl_img, ing_img)
+    paperized_comp_bowl = paperize_cutout(comp_bowl)
+    comp_bowl_path = out_dir / "balanced_bowl_cutout.png"
+    paperized_comp_bowl.save(comp_bowl_path, "PNG")
+    print(f"Created: {comp_bowl_path.name}")
 
 # -------------------------------------------------------------
-# 6. Technical Nutrition Facts Label Cutout
+# 6. Peripheral Framing Border (Documentary Stage Rim)
+# -------------------------------------------------------------
+def make_peripheral_paper_border():
+    w, h = 900, 1400
+    img = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(img)
+    # Outer Cardboard Arch
+    draw.rounded_rectangle([30, 30, w - 30, h - 30], radius=32, outline=(244, 239, 230, 220), width=6)
+    draw.rounded_rectangle([45, 45, w - 45, h - 45], radius=24, outline=(140, 109, 55, 180), width=3)
+    # Corner registration marks
+    corner_len = 50
+    draw.line([(30, 30 + corner_len), (30, 30), (30 + corner_len, 30)], fill=(255, 107, 0, 240), width=4)
+    draw.line([(w - 30 - corner_len, 30), (w - 30, 30), (w - 30, 30 + corner_len)], fill=(255, 107, 0, 240), width=4)
+    draw.line([(30, h - 30 - corner_len), (30, h - 30), (30 + corner_len, h - 30)], fill=(255, 107, 0, 240), width=4)
+    draw.line([(w - 30 - corner_len, h - 30), (w - 30, h - 30), (w - 30, h - 30 - corner_len)], fill=(255, 107, 0, 240), width=4)
+
+    paperized_border = paperize_cutout(img)
+    border_path = out_dir / "peripheral_border_frame.png"
+    paperized_border.save(border_path, "PNG")
+    print(f"Created: {border_path.name}")
+
+# -------------------------------------------------------------
+# 7. Technical Nutrition Facts Label Cutout
 # -------------------------------------------------------------
 def make_nutrition_label_cutout():
     w, h = 500, 680
@@ -311,15 +380,10 @@ def make_nutrition_label_cutout():
     draw.text((w // 2, y + 28), "ALWAYS CHECK PACKET LABEL", fill=(245, 235, 220, 255), anchor="mm", font_size=15)
     draw.text((w // 2, y + 55), "Balance with fresh vegetables & protein", fill=(255, 169, 77, 255), anchor="mm", font_size=13)
     
-    # Shadow
-    shadow = Image.new("RGBA", (w, h), (0, 0, 0, 0))
-    s_draw = ImageDraw.Draw(shadow)
-    s_draw.rounded_rectangle([26, 32, w - 14, h - 8], radius=16, fill=(0, 0, 0, 190))
-    shadow = shadow.filter(ImageFilter.GaussianBlur(16))
-    
-    final_card = Image.alpha_composite(shadow, img)
+    # Apply paperize_cutout
+    paperized_label = paperize_cutout(img)
     out_path = out_dir / "nutrition_label_cutout.png"
-    final_card.save(out_path, "PNG")
+    paperized_label.save(out_path, "PNG")
     print(f"Created: {out_path.name}")
 
 if __name__ == "__main__":
@@ -328,5 +392,6 @@ if __name__ == "__main__":
     make_ramen_noodles_cutout()
     make_stomach_anatomy_cutout()
     make_balanced_bowl_cutout()
+    make_peripheral_paper_border()
     make_nutrition_label_cutout()
     print("\nALL PHOTOGRAPHIC PAPERCRAFT COLLAGE ASSETS GENERATED!")

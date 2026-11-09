@@ -62,6 +62,9 @@ class ScenePlan:
     transition: TransitionSpec
     foley: List[FoleySpec] = field(default_factory=list)
     keywords: List[str] = field(default_factory=list)
+    metric_title: Optional[str] = None
+    metric_val: Optional[str] = None
+    widget: Optional[Dict[str, Any]] = None
 
 @dataclass
 class StoryboardPlan:
@@ -73,8 +76,8 @@ class StoryboardPlan:
     resolution: Dict[str, int]
     fps: int
     estimated_duration: float
-    soundtrack_preset: str
-    scenes: List[ScenePlan]
+    soundtrack_preset: str = "health_bio"
+    scenes: List[ScenePlan] = field(default_factory=list)
 
     def to_dict(self) -> Dict[str, Any]:
         data = asdict(self)
@@ -178,7 +181,10 @@ class StoryboardGenerator:
                 typography=typo,
                 transition=transition,
                 foley=foley_cues,
-                keywords=ch.keywords if hasattr(ch, 'keywords') else []
+                keywords=ch.keywords if hasattr(ch, 'keywords') else [],
+                metric_title=getattr(ch, 'metric_title', None),
+                metric_val=getattr(ch, 'metric_val', None),
+                widget=getattr(ch, 'widget', None)
             )
             scenes.append(scene)
 

@@ -135,6 +135,17 @@
               "volume": { "type": "number", "default": 0.7 }
             }
           }
+        },
+        "metric_title": { "type": ["string", "null"] },
+        "metric_val": { "type": ["string", "null"] },
+        "widget": {
+          "type": ["object", "null"],
+          "properties": {
+            "type": { "type": "string", "enum": ["odometer", "hanging_tag", "meter_bar"] },
+            "metric_title": { "type": "string" },
+            "metric_val": { "type": "string" },
+            "trigger_keyword": { "type": "string" }
+          }
         }
       }
     }

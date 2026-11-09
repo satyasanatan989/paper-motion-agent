@@ -208,7 +208,7 @@ class PaperMotionDirector:
         return final_video
 
     def _synthesize_neural_hinglish(self, chapters: List[Chapter], output_wav: Path) -> float:
-        """Fallback neural Hinglish speech synthesis using local edge-tts."""
+        """Neural Hinglish speech synthesis using edge-tts stream with word-level synchronization."""
         import edge_tts
         import asyncio
 
@@ -216,11 +216,37 @@ class PaperMotionDirector:
             segments = []
             cur_t = 0.0
             sr = 44100
+            word_timestamps = []
 
             for ch in chapters:
                 tmp_mp3 = self.output_dir / f"tmp_ch_{ch.chapter_num}.mp3"
                 comm = edge_tts.Communicate(ch.narration_hinglish, "hi-IN-MadhurNeural", rate="+12%", pitch="+0Hz")
-                await comm.save(str(tmp_mp3))
+
+                audio_chunks = []
+                ch_word_events = []
+                ch_sent_events = []
+
+                # Intercept audio chunks and WordBoundary events simultaneously via stream()
+                async for chunk in comm.stream():
+                    if chunk["type"] == "audio":
+                        audio_chunks.append(chunk["data"])
+                    elif chunk["type"] == "WordBoundary":
+                        start_time = round(cur_t + (chunk["offset"] / 10_000_000.0), 3)
+                        end_time = round(start_time + (chunk["duration"] / 10_000_000.0), 3)
+                        w_text = chunk.get("text", "").strip()
+                        if w_text:
+                            ch_word_events.append({
+                                "word": w_text,
+                                "start": start_time,
+                                "end": end_time,
+                                "chapter": ch.chapter_num
+                            })
+                    elif chunk["type"] == "SentenceBoundary":
+                        ch_sent_events.append(chunk)
+
+                with open(tmp_mp3, "wb") as f:
+                    for b in audio_chunks:
+                        f.write(b)
 
                 ch_wav = self.output_dir / f"tmp_ch_{ch.chapter_num}.wav"
                 subprocess.run([
@@ -234,6 +260,38 @@ class PaperMotionDirector:
                 ch.start_sec = round(cur_t, 2)
                 ch.end_sec = round(cur_t + dur, 2)
 
+                # If WordBoundary events were intercepted, register them
+                if ch_word_events:
+                    word_timestamps.extend(ch_word_events)
+                elif ch_sent_events:
+                    # Fallback interpolation from SentenceBoundary
+                    for s_chunk in ch_sent_events:
+                        s_text = s_chunk.get("text", "").strip()
+                        s_start = round(cur_t + (s_chunk["offset"] / 10_000_000.0), 3)
+                        s_dur = s_chunk["duration"] / 10_000_000.0
+                        words = s_text.split()
+                        if words:
+                            w_dur = s_dur / len(words)
+                            for idx, w in enumerate(words):
+                                word_timestamps.append({
+                                    "word": w,
+                                    "start": round(s_start + idx * w_dur, 3),
+                                    "end": round(s_start + (idx + 1) * w_dur, 3),
+                                    "chapter": ch.chapter_num
+                                })
+                else:
+                    # Fallback interpolation from narration text
+                    words = ch.narration_hinglish.split()
+                    if words:
+                        w_dur = dur / len(words)
+                        for idx, w in enumerate(words):
+                            word_timestamps.append({
+                                "word": w,
+                                "start": round(cur_t + idx * w_dur, 3),
+                                "end": round(cur_t + (idx + 1) * w_dur, 3),
+                                "chapter": ch.chapter_num
+                            })
+
                 segments.append(data)
                 # 350ms silence pause between chapters
                 silence = np.zeros(int(0.35 * sr), dtype=np.float32)
@@ -243,6 +301,13 @@ class PaperMotionDirector:
 
             master_data = np.concatenate(segments)
             sf.write(str(output_wav), master_data, sr)
+
+            # Save word timing data as flat array of dictionaries into word_timestamps.json in output_dir
+            timestamps_file = self.output_dir / "word_timestamps.json"
+            with open(timestamps_file, "w", encoding="utf-8") as f:
+                json.dump(word_timestamps, f, indent=2, ensure_ascii=False)
+            print(f"       -> Word-level synchronization saved: {timestamps_file} ({len(word_timestamps)} words)")
+
             return round(cur_t, 2)
 
         return asyncio.run(_run())
