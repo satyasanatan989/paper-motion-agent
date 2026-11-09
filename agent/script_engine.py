@@ -123,6 +123,23 @@ class ScriptEngine:
             elif purpose == "verdict":
                 return "Toh agli baar bhature khane se pehle yaad rakhna: yeh taste sirf 10 second jeebh ka hai, lekin andar yeh aapke digestive system ka sabse bada dushman hai!"
 
+        # 2. Specialized Ice Cream vs Frozen Dessert Script
+        elif doc.domain == "biology_health" and any(k in doc.topic.lower() for k in ["ice cream", "frozen dessert", "icecream"]):
+            if purpose == "hook":
+                return "Kabhi socha hai? Garmi ke mausam me jab aap thandi-thandi treat enjoy karte hain... to kya aap sach me Ice Cream kha rahe hain? Ya fir Frozen Dessert? Kyunki 80% logon ko pata hi nahi ki dono me zameen-aasmaan ka farq hai!"
+            elif purpose == "anatomy_or_scale":
+                return "Food safety laws ke mutabiq, kisi bhi product ko 'Ice Cream' tabhi kaha ja sakta hai jab usme kam se kam 10% pure dairy milk fat ho — yaani asli doodh aur cream! Agar milk fat nahi hai, to qanoon use ice cream bolne hi nahi deta."
+            elif purpose == "core_mechanism":
+                return "Lekin manufacturing brands yahan ek bada khel khelte hain! Mehenge dairy milk fat ko hatakar, uski jagah mila diya jata hai sasta vegetable oil, vanaspati aur hydrogenated palm oil! Aur pack par chhote aksharon me likh dete hain: Frozen Dessert."
+            elif purpose == "time_or_contrast":
+                return "Asli dairy milk fat aata hai lagbhag 450 se 500 rupaye kilo, jabki industrial palm oil milta hai sirf 90 rupaye kilo me — yaani 5 guna sasta! Lekin aapse dono ka daam bilkul barabar vasool kiya jata hai."
+            elif purpose == "danger_or_crisis":
+                return "Ise pehchanne ka ek simple test hai: Asli ice cream room temperature par pighal kar doodh banti hai. Lekin frozen dessert pighalta nahi, balki ek chipchipa oily jhaag chhodta hai — jo seedhe aapki arteries me jakar jamta hai."
+            elif purpose == "verdict":
+                return "Toh agli baar dukan par jab bhi packet uthayein, front par na jayein — piche ingredients check karein! Agar 'Milk Fat' likha hai to wo Ice Cream hai, agar 'Vegetable Oil' likha hai to wo sirf Frozen Dessert hai."
+            else:
+                return f"{ch.primary_fact} {' '.join(ch.supporting_facts[:2])}"
+
         # 2. Specialized Nuclear Reactor Script
         elif doc.domain == "physics_engineering" and "nuclear" in doc.topic.lower():
             if purpose == "hook":

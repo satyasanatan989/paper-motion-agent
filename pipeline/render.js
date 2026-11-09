@@ -158,41 +158,57 @@ async function main() {
     '-preset', 'fast',
     '-crf', '18',
     '-pix_fmt', 'yuv420p',
+    '-movflags', '+faststart',
     params.output
   );
 
   const ffmpegProc = spawn('ffmpeg', ffmpegArgs);
-  ffmpegProc.stderr.on('data', () => {}); // Keep buffer drained
+  let lastStderr = '';
+  ffmpegProc.stderr.on('data', chunk => {
+    lastStderr += chunk.toString();
+    if (lastStderr.length > 8000) lastStderr = lastStderr.slice(-4000);
+  });
 
   const totalFrames = Math.floor(params.duration * params.fps);
   const startTime = Date.now();
 
-  for (let i = 0; i < totalFrames; i++) {
-    const t = i / params.fps;
-    await sendCommand('Runtime.evaluate', {
-      expression: `window.setSeekTime ? window.setSeekTime(${t.toFixed(4)}) : null`
-    });
+  try {
+    for (let i = 0; i < totalFrames; i++) {
+      const t = i / params.fps;
+      await sendCommand('Runtime.evaluate', {
+        expression: `window.setSeekTime ? window.setSeekTime(${t.toFixed(4)}) : null`
+      });
 
-    const res = await sendCommand('Page.captureScreenshot', {
-      format: 'jpeg',
-      quality: 90
-    });
+      const res = await sendCommand('Page.captureScreenshot', {
+        format: 'jpeg',
+        quality: 90
+      });
 
-    const buffer = Buffer.from(res.data, 'base64');
-    ffmpegProc.stdin.write(buffer);
+      const buffer = Buffer.from(res.data, 'base64');
+      const ok = ffmpegProc.stdin.write(buffer);
+      if (!ok) {
+        await new Promise(r => ffmpegProc.stdin.once('drain', r));
+      }
 
-    if (i % 30 === 0 || i === totalFrames - 1) {
-      const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
-      const fpsReal = (i / Math.max(0.1, parseFloat(elapsed))).toFixed(1);
-      const pct = Math.floor((i / totalFrames) * 100);
-      process.stdout.write(`\r[Rendering] Frame ${i + 1}/${totalFrames} (${pct}%) in ${elapsed}s [${fpsReal} FPS]`);
+      if (i % 30 === 0 || i === totalFrames - 1) {
+        const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+        const fpsReal = (i / Math.max(0.1, parseFloat(elapsed))).toFixed(1);
+        const pct = Math.floor((i / totalFrames) * 100);
+        process.stdout.write(`\r[Rendering] Frame ${i + 1}/${totalFrames} (${pct}%) in ${elapsed}s [${fpsReal} FPS]`);
+      }
+    }
+
+    ffmpegProc.stdin.end();
+    const ffmpegCode = await new Promise(resolve => ffmpegProc.on('close', resolve));
+    if (ffmpegCode !== 0) {
+      throw new Error(`FFmpeg exited with error code ${ffmpegCode}:\n${lastStderr}`);
+    }
+  } finally {
+    try { if (ws && ws.readyState === 1) ws.close(); } catch (_) {}
+    if (chromeProc && !chromeProc.killed) {
+      try { chromeProc.kill(); } catch (_) {}
     }
   }
-
-  ffmpegProc.stdin.end();
-  await new Promise(resolve => ffmpegProc.on('close', resolve));
-  ws.close();
-  chromeProc.kill();
 
   console.log('\n\n[4/4] Video Render Successfully Completed!');
   console.log(`Saved Deliverable: ${params.output}`);

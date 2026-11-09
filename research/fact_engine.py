@@ -44,7 +44,8 @@ class ResearchEngine:
     DOMAINS = {
         "biology_health": [
             "body", "eat", "eating", "food", "flour", "maida", "digestion", "indigestion",
-            "acid", "acidity", "sugar", "gut", "brain", "sleep", "heart", "blood", "stomach"
+            "acid", "acidity", "sugar", "gut", "brain", "sleep", "heart", "blood", "stomach",
+            "ice cream", "frozen dessert", "icecream", "dessert", "milk fat", "dairy", "palm oil"
         ],
         "physics_engineering": [
             "reactor", "nuclear", "airplane", "aeroplane", "turbulence", "engine", "rocket",
@@ -74,7 +75,9 @@ class ResearchEngine:
         topic_lower = topic.lower()
 
         # Domain-Specific Knowledge Structuring
-        if "flour" in topic_lower or "maida" in topic_lower:
+        if any(k in topic_lower for k in ["ice cream", "frozen dessert", "icecream"]):
+            return self._research_ice_cream_vs_frozen_dessert(topic)
+        elif "flour" in topic_lower or "maida" in topic_lower:
             return self._research_refined_flour(topic)
         elif "nuclear" in topic_lower or "reactor" in topic_lower:
             return self._research_nuclear_reactor(topic)
@@ -88,6 +91,35 @@ class ResearchEngine:
             return self._research_ashoka(topic)
         else:
             return self._research_generic_topic(topic, domain)
+
+    def _research_ice_cream_vs_frozen_dessert(self, topic: str) -> ResearchDocument:
+        facts = [
+            FactItem("By food safety regulations (FSSAI and FDA), real Ice Cream must contain at least 10% milk fat derived directly from dairy milk or cream.", "mechanism", True, "FSSAI Dairy Regulations", "FSSAI Food Safety Standards"),
+            FactItem("Frozen Desserts replace expensive dairy milk fat with industrial vegetable oils, hydrogenated vanaspati, or palm kernel oil.", "mechanism", True, "Edible Oil Processing Standards", "FSSAI Section 2.1.1"),
+            FactItem("Industrial palm oil and vegetable fats cost 75% to 80% less than pure dairy milk fat (Rs 90/kg vs Rs 450/kg), yielding massive manufacturer profits.", "statistic", True, "Dairy vs Edible Oil Market Indices", "Ministry of Consumer Affairs"),
+            FactItem("Hydrogenated vegetable fats contain saturated fatty acids and trans-fat lattices that promote arterial plaque and elevate LDL cholesterol.", "biological_process", True, "Lipid Metabolism", "American Heart Association"),
+            FactItem("When melted at room temperature, real ice cream dissolves into liquid milk/cream, whereas frozen desserts leave an oily, frothy, curdled synthetic foam.", "mechanism", True, "Colloid Emulsion Science", "Journal of Dairy Science")
+        ]
+
+        chapters = [
+            ConceptualChapter(1, "The Cold Deception", "hook", "Aap jo thandi treat ice cream samajhkar enjoy kar rahe hain... wo technically ice cream hai hi nahi!", ["Millions unknowingly buy Frozen Desserts thinking they are eating ice cream.", "The front of the pack displays gorgeous scoops, but the small print reveals the truth."], "Photographic cutout of a glistening ice cream scoop splitting open to reveal hidden palm oil drums", {"CONSUMER CONFUSION": "85%+", "MARKET SHARE": "OVER 50%"}),
+            ConceptualChapter(2, "The 10% Dairy Law", "anatomy_or_scale", "FSSAI aur FDA ke strict rules ke mutabiq, real Ice Cream me minimum 10% pure dairy milk fat hona mandatory hai.", ["Real ice cream is made with pure cow or buffalo milk and dairy cream.", "If milk fat is below 10% or replaced, law forbids calling it 'Ice Cream'."], "Anatomical dairy milk bottle vs legal seal stamp requiring 10% pure milk fat", {"LEGAL REQUIREMENT": "MIN 10% MILK FAT", "REGULATOR": "FSSAI / FDA"}),
+            ConceptualChapter(3, "The Palm Oil Swap", "core_mechanism", "Brands dairy milk fat ko hatakar sasta hydrogenated vegetable oil aur palm oil blend kar dete hain.", ["Palm kernel oil and vanaspati are emulsified with milk solids and stabilizers.", "This synthetic oil emulsion mimics the creamy texture of dairy at a fraction of the cost."], "Chemical flask pouring viscous palm oil into a freezing churn mixer with synthetic stabilizers", {"FAT SOURCE": "100% VEGETABLE OIL", "DAIRY FAT": "0.0%"}),
+            ConceptualChapter(4, "The 3X Profit Equation", "time_or_contrast", "Pure dairy milk fat costs 450 rupees per kg, jabki industrial palm oil sirf 90 rupees per kg me milta hai!", ["Vegetable oil is 4 to 5 times cheaper than real dairy cream.", "Brands charge the exact same premium price from consumers while pocketing massive profit margins."], "Antique mechanical balance scale tilting drastically between expensive milk fat and cheap palm oil barrels", {"MILK FAT COST": "Rs 450/KG", "PALM OIL COST": "Rs 90/KG"}),
+            ConceptualChapter(5, "The Melting Test", "danger_or_crisis", "Asli ice cream room temperature par pighal kar doodh banti hai, lekin frozen dessert ek chipchipa, oily jhaag chhodta hai.", ["Vegetable fats and emulsifiers resist smooth melting.", "Hydrogenated fats with high melting points stick inside your blood vessels and spike LDL cholesterol."], "Side-by-side melting dish: liquid cream pool vs rubbery curdled foam puddle", {"MELTING BEHAVIOR": "OILY FOAM", "HEALTH RISK": "TRANS FATS & LDL"}),
+            ConceptualChapter(6, "The Label Verdict", "verdict", "Agli baar khareedte waqt pack ke front aur back ko dhyan se padhein: 'Ice Cream' dekhein, 'Frozen Dessert' nahi!", ["Check the ingredients: Look for 'Milk Fat', avoid 'Edible Vegetable Oil'.", "Your health and your money deserve 100% authentic dairy quality."], "Golden seal of truth stamping '100% PURE ICE CREAM' over a crossed-out frozen dessert banner", {"GOLDEN RULE": "READ THE LABEL", "CHOICE": "PURE DAIRY ICE CREAM"})
+        ]
+
+        return ResearchDocument(
+            topic=topic,
+            domain="biology_health",
+            core_paradox_or_hook="Why is that creamy scoop in your hand legally prohibited from being called Ice Cream?",
+            key_facts=facts,
+            chapters=chapters,
+            misconceptions_debunked=[
+                "Frozen dessert is NOT just a fancy name for ice cream; it contains zero dairy fat and is made from cheap vegetable oil."
+            ]
+        )
 
     def _research_refined_flour(self, topic: str) -> ResearchDocument:
         facts = [

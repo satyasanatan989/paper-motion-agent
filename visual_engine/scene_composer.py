@@ -150,8 +150,88 @@ class DynamicSceneComposer:
         vtype = scene.visual_type
         sid = scene.scene_id
 
-        # 1. Biological Macro / Health Explainer Stages
-        if vtype == "biological_macro" or "Gut" in scene.title or "Grain" in scene.title:
+        # 1. Specialized Ice Cream vs Frozen Dessert Visuals
+        if "Ice Cream" in scene.title or "Frozen Dessert" in scene.title or "Dairy Law" in scene.title or "Palm Oil" in scene.title or "Profit" in scene.title or "Melting" in scene.title or "Deception" in scene.title or "Label" in scene.title:
+            if "Deception" in scene.title or scene.chapter_num == 1:
+                base_content = f"""
+          <svg id="{sid}-visual" width="760" height="520" viewBox="0 0 760 520" style="filter: var(--paper-cutout);">
+            <polygon points="380,480 300,280 460,280" fill="#C68A4C" stroke="#7A4B1A" stroke-width="6"/>
+            <path d="M 300,280 L 460,280" stroke="#7A4B1A" stroke-width="4" stroke-dasharray="8 6"/>
+            <circle cx="350" cy="220" r="80" fill="#FFF8EE" stroke="#D1B894" stroke-width="5"/>
+            <circle cx="420" cy="200" r="75" fill="#6A3B18" stroke="#3D1E08" stroke-width="5"/>
+            <g class="hazard-ribbon" transform="translate(240, 90)">
+              <rect x="0" y="0" width="280" height="48" rx="8" fill="#E53E3E" stroke="#9B111E" stroke-width="3"/>
+              <text x="140" y="32" font-family="'Cinzel'" font-size="20" font-weight="900" fill="#FFF" text-anchor="middle">FAKE ICE CREAM?</text>
+            </g>
+          </svg>"""
+            elif "Dairy Law" in scene.title or scene.chapter_num == 2:
+                base_content = f"""
+          <svg id="{sid}-visual" width="760" height="520" viewBox="0 0 760 520" style="filter: var(--paper-cutout);">
+            <rect x="260" y="100" width="240" height="360" rx="40" fill="#FFFDF8" stroke="#8C6D37" stroke-width="8"/>
+            <rect x="330" y="50" width="100" height="60" rx="10" fill="#E2D3B8" stroke="#8C6D37" stroke-width="6"/>
+            <rect x="268" y="240" width="224" height="212" rx="30" fill="#FEEBC8"/>
+            <text x="380" y="290" font-family="'Cinzel'" font-size="28" font-weight="900" fill="#744210" text-anchor="middle">10% MILK FAT</text>
+            <text x="380" y="330" font-family="'Montserrat'" font-size="16" font-weight="800" fill="#975A16" text-anchor="middle">LEGAL MANDATE</text>
+            <circle cx="380" cy="390" r="34" fill="#38A169" stroke="#22543D" stroke-width="4"/>
+            <text x="380" y="398" font-family="'JetBrains Mono'" font-size="15" font-weight="800" fill="#FFF" text-anchor="middle">FSSAI</text>
+          </svg>"""
+            elif "Palm Oil" in scene.title or scene.chapter_num == 3:
+                base_content = f"""
+          <svg id="{sid}-visual" width="760" height="520" viewBox="0 0 760 520" style="filter: var(--paper-cutout);">
+            <rect x="160" y="120" width="180" height="260" rx="16" fill="#DD6B20" stroke="#7B341E" stroke-width="6"/>
+            <text x="250" y="240" font-family="'Impact'" font-size="32" fill="#FFF" text-anchor="middle">PALM OIL</text>
+            <text x="250" y="275" font-family="'JetBrains Mono'" font-size="16" fill="#FFD8A8" text-anchor="middle">VANASPATI FAT</text>
+            <path d="M 370 250 L 440 250 M 420 230 L 440 250 L 420 270" stroke="#E53E3E" stroke-width="8" stroke-linecap="round"/>
+            <rect x="460" y="140" width="180" height="220" rx="12" fill="#EDF2F7" stroke="#4A5568" stroke-width="6"/>
+            <text x="550" y="235" font-family="'Cinzel'" font-size="20" font-weight="900" fill="#2D3748" text-anchor="middle">FROZEN</text>
+            <text x="550" y="265" font-family="'Cinzel'" font-size="20" font-weight="900" fill="#E53E3E" text-anchor="middle">DESSERT</text>
+          </svg>"""
+            elif "Profit" in scene.title or scene.chapter_num == 4:
+                base_content = f"""
+          <svg id="{sid}-visual" width="760" height="520" viewBox="0 0 760 520" style="filter: var(--paper-cutout);">
+            <path d="M 380 140 L 380 440 M 320 440 L 440 440" stroke="#8C6D37" stroke-width="10" stroke-linecap="round"/>
+            <line x1="160" y1="210" x2="600" y2="290" stroke="#B7791F" stroke-width="12" stroke-linecap="round"/>
+            <line x1="160" y1="210" x2="160" y2="310" stroke="#744210" stroke-width="4"/>
+            <ellipse cx="160" cy="320" rx="80" ry="24" fill="#ECC94B" stroke="#744210" stroke-width="5"/>
+            <text x="160" y="380" font-family="'Impact'" font-size="34" fill="#ECC94B" text-anchor="middle">Rs 450/KG</text>
+            <text x="160" y="410" font-family="'Montserrat'" font-size="16" font-weight="800" fill="#FFFDF8" text-anchor="middle">PURE DAIRY FAT</text>
+            <line x1="600" y1="290" x2="600" y2="390" stroke="#744210" stroke-width="4"/>
+            <ellipse cx="600" cy="400" rx="80" ry="24" fill="#C53030" stroke="#742A2A" stroke-width="5"/>
+            <text x="600" y="450" font-family="'Impact'" font-size="34" fill="#E53E3E" text-anchor="middle">Rs 90/KG</text>
+            <text x="600" y="480" font-family="'Montserrat'" font-size="16" font-weight="800" fill="#FFFDF8" text-anchor="middle">CHEAP PALM OIL</text>
+          </svg>"""
+            elif "Melting" in scene.title or scene.chapter_num == 5:
+                base_content = f"""
+          <svg id="{sid}-visual" width="760" height="520" viewBox="0 0 760 520" style="filter: var(--paper-cutout);">
+            <g transform="translate(80, 100)">
+              <ellipse cx="120" cy="260" rx="110" ry="40" fill="#E2E8F0" stroke="#718096" stroke-width="5"/>
+              <path d="M 50 250 Q 120 220 190 250 Q 180 290 120 290 Q 60 290 50 250 Z" fill="#FFFDF5"/>
+              <text x="120" y="340" font-family="'Cinzel'" font-size="20" font-weight="900" fill="#38A169" text-anchor="middle">REAL ICE CREAM</text>
+              <text x="120" y="370" font-family="'Montserrat'" font-size="14" font-weight="700" fill="#A0AEC0" text-anchor="middle">Melts into liquid milk</text>
+            </g>
+            <g transform="translate(440, 100)">
+              <ellipse cx="120" cy="260" rx="110" ry="40" fill="#E2E8F0" stroke="#718096" stroke-width="5"/>
+              <path d="M 60 230 C 80 200 160 200 180 230 C 190 270 170 290 120 290 C 70 290 50 270 60 230 Z" fill="#ECC94B" opacity="0.85"/>
+              <circle cx="95" cy="240" r="12" fill="#FAF089" stroke="#B7791F" stroke-width="2"/>
+              <circle cx="135" cy="235" r="16" fill="#FAF089" stroke="#B7791F" stroke-width="2"/>
+              <circle cx="150" cy="260" r="10" fill="#FAF089" stroke="#B7791F" stroke-width="2"/>
+              <text x="120" y="340" font-family="'Cinzel'" font-size="20" font-weight="900" fill="#E53E3E" text-anchor="middle">FROZEN DESSERT</text>
+              <text x="120" y="370" font-family="'Montserrat'" font-size="14" font-weight="700" fill="#E53E3E" text-anchor="middle">Oily curdled foam puddle</text>
+            </g>
+          </svg>"""
+            else:
+                base_content = f"""
+          <svg id="{sid}-visual" width="760" height="520" viewBox="0 0 760 520" style="filter: var(--paper-cutout);">
+            <circle cx="380" cy="220" r="150" fill="#22543D" stroke="#1C4532" stroke-width="8"/>
+            <circle cx="380" cy="220" r="125" fill="#276749" stroke="#9AE6B4" stroke-width="4" stroke-dasharray="8 6"/>
+            <text x="380" y="195" font-family="'Cinzel'" font-size="32" font-weight="900" fill="#9AE6B4" text-anchor="middle">VERDICT</text>
+            <text x="380" y="235" font-family="'Impact'" font-size="32" fill="#FFF" text-anchor="middle">READ THE LABEL</text>
+            <text x="380" y="270" font-family="'Montserrat'" font-size="18" font-weight="800" fill="#ECC94B" text-anchor="middle">CHOOSE MILK FAT</text>
+            <path d="M 280 340 L 320 440 L 380 400 L 440 440 L 480 340 Z" fill="#1C4532"/>
+          </svg>"""
+
+        # 2. Biological Macro / Health Explainer Stages
+        elif vtype == "biological_macro" or "Gut" in scene.title or "Grain" in scene.title:
             if "Grain" in scene.title or "Wheat" in scene.title or scene.chapter_num == 2:
                 base_content = f"""
           <svg id="{sid}-visual" width="760" height="520" viewBox="0 0 760 520" style="filter: var(--paper-cutout);">

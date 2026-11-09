@@ -174,8 +174,59 @@ class StoryboardGenerator:
             ch_metric_title = getattr(ch, 'metric_title', None) or (ch_widget.get('metric_title') if isinstance(ch_widget, dict) else None)
             ch_metric_val = getattr(ch, 'metric_val', None) or (ch_widget.get('metric_val') if isinstance(ch_widget, dict) else None)
             ch_annotation = getattr(ch, 'annotation', None)
-            ch_paper_transition = getattr(ch, 'paper_transition', None)
-            ch_cadence = getattr(ch, 'cadence', None)
+            if not ch_annotation and getattr(ch, 'keywords', None):
+                is_food_topic = ("bio" in genre or "health" in genre or any(k in topic.lower() for k in ["ice cream", "frozen dessert", "food", "maida", "flour"]))
+                matched_kw = ch.keywords[0]
+                note = "CRITICAL FACTOR"
+                style = "circle"
+                accent = "burnt_orange"
+
+                if is_food_topic:
+                    for k_cand in ch.keywords:
+                        kl = k_cand.lower()
+                        if "palm" in kl or "oil" in kl or "vanaspati" in kl:
+                            matched_kw = k_cand
+                            note = "HYDROGENATED VEG FAT"
+                            style = "scribble"
+                            accent = "burnt_orange"
+                            break
+                        elif "milk" in kl or "dairy" in kl or "cream" in kl or "pure" in kl:
+                            matched_kw = k_cand
+                            note = "10% PURE MILK FAT"
+                            style = "highlight"
+                            accent = "warm_gold"
+                            break
+                        elif "dessert" in kl or "frozen" in kl or "fake" in kl or "trap" in kl:
+                            matched_kw = k_cand
+                            note = "NON-DAIRY EMULSION"
+                            style = "circle"
+                            accent = "crimson_alert"
+                            break
+                        elif "label" in kl or "verdict" in kl or "choice" in kl:
+                            matched_kw = k_cand
+                            note = "CONSUMER PROTECTION"
+                            style = "highlight"
+                            accent = "toxic_green"
+                            break
+
+                ch_annotation = {
+                    "keyword": matched_kw,
+                    "note": note,
+                    "style": style,
+                    "accent": accent,
+                    "draw_at": 0.8
+                }
+
+            ch_paper_transition = getattr(ch, 'paper_transition', None) or {
+                "type": "torn_paper_rip",
+                "direction": "left-to-right",
+                "roughness": 55,
+                "tone": "cream"
+            }
+            ch_cadence = getattr(ch, 'cadence', None) or {
+                "fps": 12,
+                "boil": True
+            }
 
             scene = ScenePlan(
                 scene_id=f"scene_{ch_num:03d}",
