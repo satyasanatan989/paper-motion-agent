@@ -14,7 +14,7 @@ from __future__ import annotations
 import html
 import json
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import List, Optional
 
 from storyboard.generator import StoryboardPlan, ScenePlan
 from visual_engine.hyperframes_primitives import HyperFramesPrimitives
@@ -57,7 +57,8 @@ class HyperFramesBridge:
       data-start="{current_time_offset:.2f}"
       data-duration="{scene_duration:.2f}"
       data-track-index="{idx}"
-      data-composition="compositions/{scene_cid}.html"
+      data-composition-id="{scene_cid}"
+      data-composition-src="compositions/{scene_cid}.html"
       data-track-kind="graphics"
     ></div>"""
             )
@@ -303,8 +304,8 @@ class HyperFramesBridge:
       <script>
         (function () {{
           "use strict";
-          var root = document.getElementById("root");
           var compositionId = "{escaped_id}";
+          var root = document.querySelector('[data-composition-id="' + compositionId + '"]');
           var tl = gsap.timeline({{ paused: true }});
 
           // Entrance
@@ -316,7 +317,7 @@ class HyperFramesBridge:
           }}, 0.1);
 
           // Vox annotation trigger
-          var annoEl = root.querySelector(".vox-annotate-container");
+          var annoEl = root ? root.querySelector(".vox-annotate-container") : null;
           if (annoEl) {{
             tl.call(function() {{
               annoEl.classList.add("active");

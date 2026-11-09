@@ -12,14 +12,12 @@ import html
 try:
     from storyboard.generator import StoryboardPlan, ScenePlan
     from visual_engine.camera import CameraController
-    from visual_engine.motion_presets import MotionEasing, ParticleField
     from visual_engine.transitions import TransitionLibrary
     from visual_engine.typography import KineticTypography
     from visual_engine.hyperframes_primitives import HyperFramesPrimitives
 except ImportError:
     from ..storyboard.generator import StoryboardPlan, ScenePlan
     from .camera import CameraController
-    from .motion_presets import MotionEasing, ParticleField
     from .transitions import TransitionLibrary
     from .typography import KineticTypography
     from .hyperframes_primitives import HyperFramesPrimitives
@@ -870,6 +868,8 @@ html, body {{
     const relT = t - currentChapter.start;
     const progress = Math.min(1.0, Math.max(0.0, relT / dur));
 
+    const activeSceneEl = document.getElementById(currentChapter.sceneId);
+
     // HyperFrames Vox Annotation Trigger
     const activeAnno = activeSceneEl ? activeSceneEl.querySelector('.vox-annotate-container') : null;
     if (activeAnno) {{
@@ -889,7 +889,6 @@ html, body {{
       currentChapter.camera.zoomEnd || 1.07
     );
 
-    const activeSceneEl = document.getElementById(currentChapter.sceneId);
     if (activeSceneEl) {{
       const vStage = activeSceneEl.querySelector('.visual-stage');
       if (vStage) {{

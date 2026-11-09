@@ -27,9 +27,7 @@ from storyboard.generator import (
     CameraSpec,
     TypographySpec,
     TransitionSpec,
-    FoleySpec,
     LayerSpec,
-    StoryboardGenerator,
 )
 from visual_engine.scene_composer import DynamicSceneComposer
 from visual_engine.hyperframes_primitives import HyperFramesPrimitives
@@ -281,7 +279,8 @@ def test_hyperframes_bridge_export(tmp_path, sample_hyperframes_storyboard):
     # Verify root index.html contract
     root_html = (export_dir / "index.html").read_text(encoding="utf-8")
     assert 'data-composition-id="root"' in root_html
-    assert 'data-composition="compositions/scene_001.html"' in root_html
+    assert 'data-composition-id="scene_001"' in root_html
+    assert 'data-composition-src="compositions/scene_001.html"' in root_html
     assert 'data-composition-variables=' in root_html
 
     # Verify scene sub-composition template contract
