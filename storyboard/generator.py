@@ -167,6 +167,10 @@ class StoryboardGenerator:
             # Foley sound effects per chapter
             foley_cues = self._derive_foley(genre, ch_num)
 
+            ch_widget = getattr(ch, 'widget', None)
+            ch_metric_title = getattr(ch, 'metric_title', None) or (ch_widget.get('metric_title') if isinstance(ch_widget, dict) else None)
+            ch_metric_val = getattr(ch, 'metric_val', None) or (ch_widget.get('metric_val') if isinstance(ch_widget, dict) else None)
+
             scene = ScenePlan(
                 scene_id=f"scene_{ch_num:03d}",
                 chapter_num=ch_num,
@@ -182,9 +186,9 @@ class StoryboardGenerator:
                 transition=transition,
                 foley=foley_cues,
                 keywords=ch.keywords if hasattr(ch, 'keywords') else [],
-                metric_title=getattr(ch, 'metric_title', None),
-                metric_val=getattr(ch, 'metric_val', None),
-                widget=getattr(ch, 'widget', None)
+                metric_title=ch_metric_title,
+                metric_val=ch_metric_val,
+                widget=ch_widget
             )
             scenes.append(scene)
 

@@ -220,7 +220,13 @@ class PaperMotionDirector:
 
             for ch in chapters:
                 tmp_mp3 = self.output_dir / f"tmp_ch_{ch.chapter_num}.mp3"
-                comm = edge_tts.Communicate(ch.narration_hinglish, "hi-IN-MadhurNeural", rate="+12%", pitch="+0Hz")
+                comm = edge_tts.Communicate(
+                    ch.narration_hinglish,
+                    "hi-IN-MadhurNeural",
+                    rate="+12%",
+                    pitch="+0Hz",
+                    boundary="WordBoundary"
+                )
 
                 audio_chunks = []
                 ch_word_events = []

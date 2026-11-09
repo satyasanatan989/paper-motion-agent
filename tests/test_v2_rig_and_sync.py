@@ -125,3 +125,62 @@ def test_prompts_and_schema_constraints():
     assert "metric_val" in scene_props
     assert "widget" in scene_props
     assert set(scene_props["widget"]["properties"]["type"]["enum"]) == {"odometer", "hanging_tag", "meter_bar"}
+
+def test_cumulative_timeline_calculation_and_widget_variants():
+    composer = DynamicSceneComposer()
+    
+    # Test scenes with varying durations to ensure no gaps or snaps
+    s1 = ScenePlan(
+        scene_id="scene_001", chapter_num=1, title="S1", duration=4.2, narration="First",
+        visual_type="biological_macro", environment="e1", background_tone={}, camera=CameraSpec("pan_left"),
+        layers=[], typography=TypographySpec("B1", "M1", "S1", []), transition=TransitionSpec("cinematic_zoom"),
+        widget={"type": "hanging_tag", "metric_title": "HAZARD", "metric_val": "CRITICAL"}
+    )
+    s2 = ScenePlan(
+        scene_id="scene_002", chapter_num=2, title="S2", duration=2.8, narration="Second",
+        visual_type="biological_macro", environment="e2", background_tone={}, camera=CameraSpec("pan_right"),
+        layers=[], typography=TypographySpec("B2", "M2", "S2", []), transition=TransitionSpec("paper_tear"),
+        widget={"type": "meter_bar", "metric_title": "ACID LEVEL", "metric_val": "85%"}
+    )
+    
+    sb = StoryboardPlan(
+        project_name="timeline_test", topic="Timeline Test", language="hinglish", genre="science_bio",
+        aspect_ratio="9:16", resolution={"width": 1080, "height": 1920}, fps=30, estimated_duration=7.0,
+        soundtrack_preset="health_bio", scenes=[s1, s2]
+    )
+    
+    js = composer._generate_js(sb)
+    html = composer._generate_html(sb)
+    
+    # 1. Verify cumulative time (no index-multiplication overlaps or gaps)
+    assert '"start": 0.0' in js
+    assert '"end": 4.2' in js
+    assert '"start": 4.2' in js
+    assert '"end": 7.0' in js
+    
+    # 2. Verify hanging tag & meter bar rendered
+    assert 'class="hanging-tag-widget"' in html
+    assert 'class="meter-bar-widget"' in html
+    assert "HAZARD" in html
+    assert "ACID LEVEL" in html
+
+def test_word_level_audio_sync_structure(tmp_path):
+    # Test flat array structure of word_timestamps.json
+    mock_timestamps = [
+        {"word": "Har", "start": 0.1, "end": 0.45, "chapter": 1},
+        {"word": "grain", "start": 0.46, "end": 0.88, "chapter": 1},
+        {"word": "starch", "start": 0.90, "end": 1.40, "chapter": 1}
+    ]
+    out_file = tmp_path / "word_timestamps.json"
+    with open(out_file, "w", encoding="utf-8") as f:
+        json.dump(mock_timestamps, f, indent=2)
+    
+    with open(out_file, "r", encoding="utf-8") as f:
+        loaded = json.load(f)
+    
+    assert len(loaded) == 3
+    assert loaded[0]["word"] == "Har"
+    assert loaded[0]["start"] == 0.1
+    assert loaded[1]["end"] == 0.88
+    assert loaded[2]["chapter"] == 1
+

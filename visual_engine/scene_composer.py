@@ -239,16 +239,49 @@ class DynamicSceneComposer:
             <text x="380" y="270" font-family="'Cinzel'" font-size="32" font-weight="900" fill="#2D241E" text-anchor="middle">{html.escape(scene.title.upper())}</text>
           </svg>"""
 
-        # Inject reusable HTML block for OdometerWidget populated with scene.metric_title and scene.metric_val
-        odometer_block = self.render_odometer_widget(
-            metric_title=getattr(scene, 'metric_title', None) or (scene.keywords[0].upper() if scene.keywords else "INDEX"),
-            metric_val=getattr(scene, 'metric_val', None) or "100%",
-            widget_id=f"{sid}-odometer"
-        ) if (getattr(scene, 'metric_title', None) or getattr(scene, 'metric_val', None)) else ""
+        # Unpack widget specs from scene.widget or direct attributes
+        widget_data = getattr(scene, 'widget', None)
+        w_type = "odometer"
+        if isinstance(widget_data, dict):
+            w_type = widget_data.get("type", "odometer")
+            metric_title = getattr(scene, 'metric_title', None) or widget_data.get("metric_title")
+            metric_val = getattr(scene, 'metric_val', None) or widget_data.get("metric_val")
+        else:
+            metric_title = getattr(scene, 'metric_title', None)
+            metric_val = getattr(scene, 'metric_val', None)
 
-        if odometer_block:
-            return f"{base_content}\n{odometer_block}"
+        widget_markup = ""
+        if metric_title or metric_val:
+            m_title = metric_title or (scene.keywords[0].upper() if scene.keywords else "INDEX")
+            m_val = str(metric_val or "100%")
+            if w_type == "hanging_tag":
+                widget_markup = self.render_hanging_tag_widget(m_title, m_val, widget_id=f"{sid}-tag")
+            elif w_type == "meter_bar":
+                widget_markup = self.render_meter_bar_widget(m_title, m_val, widget_id=f"{sid}-meter")
+            else:
+                widget_markup = self.render_odometer_widget(m_title, m_val, widget_id=f"{sid}-odometer")
+
+        if widget_markup:
+            return f"{base_content}\n{widget_markup}"
         return base_content
+
+    @staticmethod
+    def render_hanging_tag_widget(metric_title: str, metric_val: str, widget_id: str = "hanging-tag-widget") -> str:
+        """Reusable mechanical hanging tag widget."""
+        return f"""
+          <div class="hanging-tag-widget" id="{html.escape(widget_id)}">
+            <span style="font-size: 15px; opacity: 0.75; display: block; font-family: 'JetBrains Mono', monospace;">{html.escape(metric_title.upper())}</span>
+            <span>{html.escape(str(metric_val).upper())}</span>
+          </div>"""
+
+    @staticmethod
+    def render_meter_bar_widget(metric_title: str, metric_val: str, widget_id: str = "meter-bar-widget") -> str:
+        """Reusable mechanical meter bar widget."""
+        return f"""
+          <div class="meter-bar-widget" id="{html.escape(widget_id)}">
+            <div style="font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 800; color: #F4EFE6; margin-bottom: 6px;">{html.escape(metric_title.upper())}: {html.escape(str(metric_val))}</div>
+            <div class="meter-bar-fill"></div>
+          </div>"""
 
     @staticmethod
     def render_odometer_widget(metric_title: str, metric_val: str, widget_id: str = "odometer-widget") -> str:
@@ -653,11 +686,15 @@ html, body {{
 
     def _generate_js(self, storyboard: StoryboardPlan) -> str:
         chapters_json = []
+        cur_time = 0.0
         for scene in storyboard.scenes:
+            scene_start = round(cur_time, 2)
+            scene_end = round(cur_time + scene.duration, 2)
+            cur_time = scene_end
             chapters_json.append({
                 "id": scene.chapter_num,
-                "start": round(scene.duration * (scene.chapter_num - 1), 2), # Updated dynamically at runtime
-                "end": round(scene.duration * scene.chapter_num, 2),
+                "start": scene_start,
+                "end": scene_end,
                 "sceneId": scene.scene_id,
                 "caption": scene.narration,
                 "keywords": scene.keywords,
@@ -786,9 +823,20 @@ html, body {{
       }}
     }});
 
-    // Update Subtitles
+    // Update Subtitles with Word-Level Synchronization
     if (captionBox) {{
-      captionBox.innerHTML = highlightKeywords(currentChapter.caption, currentChapter.keywords);
+      let captionHtml = highlightKeywords(currentChapter.caption, currentChapter.keywords);
+      if (wordTimestamps && wordTimestamps.length > 0) {{
+        const activeWord = wordTimestamps.find(w => t >= w.start && t <= w.end);
+        if (activeWord && activeWord.word) {{
+          const cleanWord = activeWord.word.replace(/[^a-zA-Z0-9\u0900-\u097F]/g, '');
+          if (cleanWord.length > 1) {{
+            const wordReg = new RegExp(`(\\\\b${{cleanWord}}\\\\b)`, 'i');
+            captionHtml = captionHtml.replace(wordReg, '<span class="active-word" style="color:var(--accent-burnt-orange);text-shadow:0 0 16px var(--accent-burnt-orange);font-weight:900;">$1</span>');
+          }}
+        }}
+      }}
+      captionBox.innerHTML = captionHtml;
     }}
 
     // Interpolation progress within active chapter
