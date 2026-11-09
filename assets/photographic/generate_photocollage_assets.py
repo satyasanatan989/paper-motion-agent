@@ -8,7 +8,7 @@ Generates the authentic MeanwhileMayank / Vox documentary aesthetic:
 
 import math
 import numpy as np
-from PIL import Image, ImageDraw, ImageFilter, ImageFont, ImageChops
+from PIL import Image, ImageDraw, ImageFilter, ImageFont, ImageChops, ImageEnhance
 from pathlib import Path
 
 out_dir = Path(__file__).parent
@@ -119,6 +119,278 @@ def halftone_cutout(
     if paperize:
         return paperize_cutout(halftone_img)
     return halftone_img
+
+# -------------------------------------------------------------
+# 0C. Die-Cut Vinyl Sticker Generator (cloveric/sticker pattern)
+# -------------------------------------------------------------
+def generate_diecut_sticker(
+    image: Image.Image,
+    border_px: int = 12,
+    border_color: tuple = (252, 250, 245),  # warm white vinyl
+    peel_corner: str = None,                # 'top_right', 'bottom_right', or None
+    shadow_offset: tuple = (6, 12),
+    shadow_blur: int = 10,
+    shadow_opacity: float = 0.40
+) -> Image.Image:
+    """
+    Turns any transparent artwork into a real die-cut vinyl sticker:
+    1. Dilates alpha silhouette with rounded corners for thick vinyl border.
+    2. Adds subtle glossy specular highlight along lit edges.
+    3. Optional folded peeled corner showing paper backing.
+    4. Baked-in physical contact + ambient drop shadow.
+    """
+    if image.mode != "RGBA":
+        image = image.convert("RGBA")
+
+    w, h = image.size
+    alpha = image.split()[3]
+
+    # 1. Pad image canvas so vinyl dilation never clips on boundary
+    border_pad = border_px + 4
+    padded_w, padded_h = w + border_pad * 2, h + border_pad * 2
+    padded_img = Image.new("RGBA", (padded_w, padded_h), (0, 0, 0, 0))
+    padded_img.paste(image, (border_pad, border_pad), image)
+    w, h = padded_w, padded_h
+    alpha = padded_img.split()[3]
+
+    # Dilate mask for die-cut vinyl border
+    filter_size = max(3, border_px * 2 + 1)
+    if filter_size % 2 == 0:
+        filter_size += 1
+    dilated_alpha = alpha.filter(ImageFilter.MaxFilter(filter_size))
+
+    # Base canvas for the sticker body (white vinyl border)
+    vinyl_body = Image.new("RGBA", (w, h), (*border_color, 255))
+    vinyl_body.putalpha(dilated_alpha)
+
+    # Paste original artwork over vinyl base
+    sticker_art = vinyl_body.copy()
+    sticker_art.paste(padded_img, (0, 0), padded_img)
+
+    # Optional folded peeled corner
+    if peel_corner == "top_right":
+        peel_size = min(w, h) // 5
+        if peel_size > 8:
+            peel_mask = Image.new("L", (w, h), 255)
+            p_draw = ImageDraw.Draw(peel_mask)
+            p_draw.polygon([(w - peel_size, 0), (w, 0), (w, peel_size)], fill=0)
+            sticker_art.putalpha(ImageChops.multiply(sticker_art.split()[3], peel_mask))
+
+            # Folded backing triangle reflecting corner (w, 0) to (w - peel_size, peel_size)
+            fold_img = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+            f_draw = ImageDraw.Draw(fold_img)
+            f_draw.polygon([(w - peel_size, 0), (w, peel_size), (w - peel_size, peel_size)], fill=(238, 230, 218, 255))
+            f_draw.polygon([(w - peel_size, 0), (w, peel_size), (w - peel_size, peel_size)], outline=(210, 200, 185, 255), width=1)
+            sticker_art = Image.alpha_composite(sticker_art, fold_img)
+    elif peel_corner == "bottom_right":
+        peel_size = min(w, h) // 5
+        if peel_size > 8:
+            peel_mask = Image.new("L", (w, h), 255)
+            p_draw = ImageDraw.Draw(peel_mask)
+            p_draw.polygon([(w - peel_size, h), (w, h), (w, h - peel_size)], fill=0)
+            sticker_art.putalpha(ImageChops.multiply(sticker_art.split()[3], peel_mask))
+
+            fold_img = Image.new("RGBA", (w, h), (0, 0, 0, 0))
+            f_draw = ImageDraw.Draw(fold_img)
+            f_draw.polygon([(w - peel_size, h), (w, h - peel_size), (w - peel_size, h - peel_size)], fill=(238, 230, 218, 255))
+            f_draw.polygon([(w - peel_size, h), (w, h - peel_size), (w - peel_size, h - peel_size)], outline=(210, 200, 185, 255), width=1)
+            sticker_art = Image.alpha_composite(sticker_art, fold_img)
+
+    # Hard-angled drop shadow onto expanded canvas with accurate opacity scaling
+    off_x, off_y = shadow_offset
+    pad_x = max(shadow_blur * 2, abs(off_x) + shadow_blur * 2)
+    pad_y = max(shadow_blur * 2, abs(off_y) + shadow_blur * 2)
+    new_w, new_h = w + pad_x * 2, h + pad_y * 2
+
+    canvas = Image.new("RGBA", (new_w, new_h), (0, 0, 0, 0))
+    s_alpha = sticker_art.split()[3]
+    scaled_shadow_alpha = s_alpha.point(lambda p: int(p * shadow_opacity))
+    shadow_mask = Image.new("RGBA", (w, h), (18, 14, 10, 0))
+    shadow_mask.putalpha(scaled_shadow_alpha)
+
+    blurred_shadow = Image.new("RGBA", (new_w, new_h), (0, 0, 0, 0))
+    blurred_shadow.paste(shadow_mask, (pad_x + off_x, pad_y + off_y), shadow_mask)
+    blurred_shadow = blurred_shadow.filter(ImageFilter.GaussianBlur(shadow_blur))
+
+    blurred_shadow.paste(sticker_art, (pad_x, pad_y), sticker_art)
+    return blurred_shadow
+
+# -------------------------------------------------------------
+# 0D. Washi Tape Strip Generator (cloveric/sticker pattern)
+# -------------------------------------------------------------
+def generate_washi_tape(
+    width: int = 240,
+    height: int = 48,
+    color: tuple = (232, 172, 44),
+    pattern: str = "stripe",
+    opacity: int = 185,
+    seed: int = 42
+) -> Image.Image:
+    """
+    Generates authentic translucent washi tape with hand-torn zigzag ends,
+    longitudinal paper fibers, and pattern striping.
+    """
+    rng = np.random.default_rng(seed)
+    # Extra horizontal padding for torn teeth
+    pad = 16
+    full_w = width + pad * 2
+    img = Image.new("RGBA", (full_w, height), (0, 0, 0, 0))
+
+    # Build torn tooth zigzag polygon
+    teeth = 12
+    left_edge = []
+    for i in range(teeth + 1):
+        y = (height * i) / teeth
+        jitter_x = pad + (rng.uniform(-3.5, 3.5) if (i % 2 == 1) else 0.0)
+        left_edge.append((jitter_x, y))
+
+    right_edge = []
+    for i in range(teeth, -1, -1):
+        y = (height * i) / teeth
+        jitter_x = (full_w - pad) + (rng.uniform(-3.5, 3.5) if (i % 2 == 1) else 0.0)
+        right_edge.append((jitter_x, y))
+
+    poly = left_edge + right_edge
+
+    # Draw base translucent tape body (binary shape mask)
+    tape_mask = Image.new("L", (full_w, height), 0)
+    m_draw = ImageDraw.Draw(tape_mask)
+    m_draw.polygon(poly, fill=255)
+
+    tape_base = Image.new("RGBA", (full_w, height), (*color, opacity))
+    tape_base.putalpha(tape_mask.point(lambda p: int(p * (opacity / 255.0))))
+
+    # Apply diagonal pattern (stripes or grid)
+    pattern_overlay = Image.new("RGBA", (full_w, height), (0, 0, 0, 0))
+    p_draw = ImageDraw.Draw(pattern_overlay)
+    if pattern == "stripe":
+        stripe_spacing = 16
+        for x in range(-height, full_w + height, stripe_spacing):
+            p_draw.line([(x, height), (x + height, 0)], fill=(255, 255, 255, 45), width=3)
+    elif pattern == "grid":
+        for x in range(0, full_w, 12):
+            p_draw.line([(x, 0), (x, height)], fill=(255, 255, 255, 30), width=1)
+        for y in range(0, height, 12):
+            p_draw.line([(0, y), (full_w, y)], fill=(255, 255, 255, 30), width=1)
+
+    tape_composite = Image.alpha_composite(tape_base, pattern_overlay)
+    tape_composite.putalpha(ImageChops.multiply(tape_composite.split()[3], tape_mask))
+
+    # Add hair-line contact shadow with symmetrical padding
+    shadow_pad = 8
+    res_w, res_h = full_w + shadow_pad * 2, height + shadow_pad * 2
+    res = Image.new("RGBA", (res_w, res_h), (0, 0, 0, 0))
+    shadow_alpha = tape_mask.point(lambda p: int(p * 0.35))
+    shadow_mask = Image.new("RGBA", (full_w, height), (20, 16, 12, 0))
+    shadow_mask.putalpha(shadow_alpha)
+    res.paste(shadow_mask, (shadow_pad + 2, shadow_pad + 3), shadow_mask)
+    res = res.filter(ImageFilter.GaussianBlur(2))
+    res.paste(tape_composite, (shadow_pad, shadow_pad), tape_composite)
+
+    return res
+
+# -------------------------------------------------------------
+# 0E. Distressed Rubber Stamp Generator (cloveric/sticker pattern)
+# -------------------------------------------------------------
+def generate_rubber_stamp(
+    text_outer: str = "VERIFIED · LAB TESTED · ",
+    text_center: str = "GENUINE",
+    color: tuple = (216, 65, 43),
+    diameter: int = 200,
+    seed: int = 42
+) -> Image.Image:
+    """
+    Generates a round rubber stamp with concentric rings, centered text,
+    curved outer circular text, and distressed paper tooth imperfections.
+    """
+    diameter = max(60, diameter)
+    img = Image.new("RGBA", (diameter, diameter), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(img)
+
+    cx, cy = diameter / 2.0, diameter / 2.0
+    r_outer = diameter / 2.0 - 8
+    r_inner = max(10, r_outer - 12)
+
+    # Concentric circles
+    draw.ellipse([cx - r_outer, cy - r_outer, cx + r_outer, cy + r_outer], outline=(*color, 240), width=5)
+    draw.ellipse([cx - r_inner, cy - r_inner, cx + r_inner, cy + r_inner], outline=(*color, 220), width=2)
+
+    # Center text box
+    box_w, box_h = diameter * 0.65, diameter * 0.22
+    draw.rectangle([cx - box_w/2, cy - box_h/2, cx + box_w/2, cy + box_h/2], outline=(*color, 230), width=3)
+
+    # Draw centered text with anchor="mm" for exact precision
+    try:
+        font_c = ImageFont.truetype("arialbd.ttf", max(10, int(diameter * 0.12)))
+    except Exception:
+        font_c = ImageFont.load_default()
+
+    draw.text((cx, cy), text_center, fill=(*color, 245), font=font_c, anchor="mm")
+
+    # Render outer circular text around upper and lower perimeter
+    if text_outer:
+        try:
+            font_o = ImageFont.truetype("arialbd.ttf", max(8, int(diameter * 0.055)))
+        except Exception:
+            font_o = ImageFont.load_default()
+
+        # Distribute characters along circular arc
+        chars = list(text_outer.strip())
+        n_chars = len(chars)
+        if n_chars > 0:
+            arc_span = math.pi * 1.5
+            start_angle = -math.pi * 0.75
+            r_text = (r_outer + r_inner) / 2.0
+            for i, ch in enumerate(chars):
+                angle = start_angle + (i / max(1, n_chars - 1)) * arc_span
+                tx = cx + r_text * math.cos(angle)
+                ty = cy + r_text * math.sin(angle)
+                draw.text((tx, ty), ch, fill=(*color, 220), font=font_o, anchor="mm")
+
+    # Distress mask: simulate paper tooth gaps and stamp ink pooling
+    rng = np.random.default_rng(seed)
+    noise = rng.integers(0, 255, (diameter, diameter), dtype=np.uint8)
+    noise_im = Image.fromarray(noise).filter(ImageFilter.GaussianBlur(1.2))
+
+    arr = np.array(img)
+    alpha = arr[:, :, 3].astype(np.float32)
+    # Threshold noise to drop out ~12% of ink
+    n_arr = np.array(noise_im, dtype=np.float32) / 255.0
+    distressed_alpha = np.where(n_arr < 0.18, alpha * 0.2, alpha)
+    arr[:, :, 3] = np.clip(distressed_alpha, 0, 255).astype(np.uint8)
+
+    return Image.fromarray(arr)
+
+# -------------------------------------------------------------
+# 0F. Adaptive Palette Accent Color Sampler (Vox Director pattern)
+# -------------------------------------------------------------
+def sample_accent_color(image: Image.Image, default: tuple = (214, 64, 42)) -> tuple:
+    """
+    Samples the most vibrant, high-contrast chroma from a keyframe image
+    so subtitle keylines and annotations automatically match each scene's palette.
+    """
+    try:
+        small = image.convert("RGB").resize((80, 80)).quantize(colors=24).convert("RGB")
+    except Exception:
+        return default
+
+    best, best_score = None, -1.0
+    colors = small.getcolors(80 * 80) or []
+    for count, (r, g, b) in colors:
+        mx, mn = max(r, g, b), min(r, g, b)
+        if mx == 0:
+            continue
+        sat = (mx - mn) / mx
+        val = mx / 255.0
+        # Discard washed-out whites/greys and pure pitch blacks
+        if sat < 0.35 or val < 0.20 or (sat < 0.15 and val > 0.92):
+            continue
+        score = sat * val * (count ** 0.35)
+        if score > best_score:
+            best, best_score = (r, g, b), score
+
+    return best or default
+
 
 # -------------------------------------------------------------
 # 1. Dark Journal Notebook Canvas (with Binder Holes & Spine Crease)
