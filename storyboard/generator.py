@@ -225,7 +225,11 @@ class StoryboardGenerator:
             }
             ch_cadence = getattr(ch, 'cadence', None) or {
                 "fps": 12,
-                "boil": True
+                "boil": True,
+                "hold_frames": 2,
+                "jitter_px": 1.6,
+                "jitter_deg": 0.45,
+                "seed": 42 + ch_num * 101
             }
 
             scene = ScenePlan(

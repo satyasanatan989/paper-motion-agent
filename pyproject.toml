@@ -72,3 +72,8 @@ papermotion = "cli:main"
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["agent*", "voice*", "motion*", "pipeline*"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+

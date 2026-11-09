@@ -605,6 +605,22 @@ html, body {{
   align-items: center;
   justify-content: center;
   position: relative;
+  will-change: transform;
+  transform-origin: center center;
+}}
+
+/* Pasteup Stop-Motion Wobble & Paper Boil (tmoody1973/pasteup pattern) */
+.visual-stage svg,
+.visual-stage svg g,
+.visual-stage .hazard-ribbon,
+.visual-stage .hanging-tag-widget,
+.visual-stage .meter-bar-widget,
+.visual-stage .odometer-widget,
+.visual-stage .vox-annotate-container,
+.visual-stage .brand-badge {{
+  transform-box: fill-box;
+  transform-origin: center center;
+  will-change: translate, rotate;
 }}
 
 /* Mechanical Data Widgets: Odometer */
@@ -801,7 +817,14 @@ html, body {{
                 "keywords": scene.keywords,
                 "annotation": getattr(scene, 'annotation', None),
                 "paperTransition": getattr(scene, 'paper_transition', None),
-                "cadence": getattr(scene, 'cadence', None),
+                "cadence": getattr(scene, 'cadence', None) or {
+                    "fps": 12,
+                    "boil": True,
+                    "hold_frames": 2,
+                    "jitter_px": 1.6,
+                    "jitter_deg": 0.45,
+                    "seed": 42 + scene.chapter_num * 101
+                },
                 "camera": {
                     "movement": scene.camera.movement,
                     "zoomStart": scene.camera.zoom_start,
@@ -905,7 +928,21 @@ html, body {{
     return res;
   }}
 
-  // 5. Millisecond-Accurate Frame Seek Driver
+  // 5. Pasteup Stop-Motion Wobble & Paper Boil Engine (tmoody1973/pasteup pattern)
+  function computePasteupJitter(seed, poseIndex, jitterPx, jitterDeg) {{
+    let s = ((seed * 100003 + poseIndex * 49297) ^ 0x5DEECE66D) >>> 0;
+    function randNorm() {{
+      s = (s * 9301 + 49297) % 233280;
+      return (s / 233280.0) * 2.0 - 1.0;
+    }}
+    return {{
+      jx: randNorm() * jitterPx,
+      jy: randNorm() * jitterPx,
+      jr: randNorm() * jitterDeg
+    }};
+  }}
+
+  // 6. Millisecond-Accurate Frame Seek Driver
   window.setSeekTime = function (t) {{
     let currentChapter = chapters[0];
     for (let i = 0; i < chapters.length; i++) {{
@@ -969,10 +1006,30 @@ html, body {{
       currentChapter.camera.zoomEnd || 1.07
     );
 
+    // Pasteup Stop-Motion Cadence & Per-Pose Jitter
+    const cadence = currentChapter.cadence || {{ fps: 12, boil: true, hold_frames: 2, jitter_px: 1.6, jitter_deg: 0.45, seed: 42 }};
+    const baseFps = {storyboard.fps};
+    const holdFrames = cadence.hold_frames != null ? cadence.hold_frames : (cadence.fps ? Math.round(baseFps / cadence.fps) : 2);
+    const poseIndex = Math.floor((t * baseFps) / Math.max(1, holdFrames));
+    const seed = cadence.seed != null ? cadence.seed : 42;
+    const jitterPx = cadence.jitter_px != null ? cadence.jitter_px : 1.6;
+    const jitterDeg = cadence.jitter_deg != null ? cadence.jitter_deg : 0.45;
+    const stageJitter = computePasteupJitter(seed, poseIndex, jitterPx, jitterDeg);
+
     if (activeSceneEl) {{
       const vStage = activeSceneEl.querySelector('.visual-stage');
       if (vStage) {{
-        vStage.style.transform = `translate3d(${{cam.cx}}px, ${{cam.cy}}px, ${{cam.cz}}px) scale(${{cam.zoom}})`;
+        vStage.style.transform = `translate3d(${{(cam.cx + stageJitter.jx).toFixed(2)}}px, ${{(cam.cy + stageJitter.jy).toFixed(2)}}px, ${{cam.cz}}px) rotate(${{stageJitter.jr.toFixed(2)}}deg) scale(${{cam.zoom}})`;
+      }}
+
+      // Discrete Paper Boil on Articulated Cutouts (tmoody1973/pasteup pattern)
+      if (cadence.boil) {{
+        const cutouts = activeSceneEl.querySelectorAll('.hazard-ribbon, .hanging-tag-widget, .meter-bar-widget, .odometer-widget, .vox-annotate-container, svg g, .brand-badge');
+        cutouts.forEach((el, elIdx) => {{
+          const elJitter = computePasteupJitter(seed + (elIdx + 1) * 37, poseIndex, jitterPx * 0.65, jitterDeg * 0.65);
+          el.style.translate = `${{elJitter.jx.toFixed(2)}}px ${{elJitter.jy.toFixed(2)}}px`;
+          el.style.rotate = `${{elJitter.jr.toFixed(2)}}deg`;
+        }});
       }}
     }}
 
