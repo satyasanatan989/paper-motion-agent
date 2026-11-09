@@ -394,6 +394,121 @@ def sample_accent_color(image: Image.Image, default: tuple = (214, 64, 42)) -> t
 
 
 # -------------------------------------------------------------
+# 0G. Fractal Torn Paper Edge Generator (cloveric/papercut pattern)
+# -------------------------------------------------------------
+def generate_torn_paper_edge(
+    width: int = 400,
+    height: int = 260,
+    edge_sides: tuple = ("bottom",),
+    paper_color: tuple = (244, 239, 230),
+    pulp_color: tuple = (255, 255, 255),
+    tear_depth: int = 14,
+    seed: int = 42
+) -> Image.Image:
+    """
+    Renders an authentic heavy cardstock document with fractal torn edges.
+    1. Outer face paper tears back irregularly based on multi-scale noise.
+    2. Inner white fibrous pulp layer extends 2-5px beyond the paper tear.
+    3. Soft ambient drop shadow beneath the cardstock.
+    """
+    rng = np.random.default_rng(seed)
+    pad = tear_depth + 16
+    full_w, full_h = width + pad * 2, height + pad * 2
+
+    # Binary mask for the white pulp core (outermost torn boundary)
+    pulp_mask = Image.new("L", (full_w, full_h), 0)
+    p_draw = ImageDraw.Draw(pulp_mask)
+
+    # Base coordinates of the card
+    x0, y0 = pad, pad
+    x1, y1 = pad + width, pad + height
+
+    # Function to generate irregular fractal edge points
+    def fractal_edge(start_pt, end_pt, is_torn, is_pulp_layer=False, edge_side="bottom"):
+        if not is_torn:
+            return [start_pt, end_pt]
+        sx, sy = start_pt
+        ex, ey = end_pt
+        dist = math.hypot(ex - sx, ey - sy)
+        steps = max(16, int(dist / 4.0))
+        pts = []
+
+        # Direction toward card interior: top=+y, bottom=-y, left=+x, right=-x
+        inward_sign = 1.0 if edge_side in ("top", "left") else -1.0
+
+        for i in range(steps + 1):
+            t = i / steps
+            bx = sx + t * (ex - sx)
+            by = sy + t * (ey - sy)
+
+            # Smooth corner envelope so endpoints meet adjacent sides cleanly
+            envelope = math.sin(t * math.pi) ** 0.6 if dist > 0 else 1.0
+
+            # Multi-octave fractal jitter
+            n1 = math.sin(t * 14.0 * math.pi) * 3.5
+            n2 = math.cos(t * 29.0 * math.pi) * 1.8
+            n3 = rng.uniform(-1.8, 1.8)
+            displacement = (n1 + n2 + n3) * (tear_depth / 8.0) * envelope
+
+            if not is_pulp_layer:
+                # Face paper tears back inward to reveal underlying fibrous pulp
+                displacement += inward_sign * (2.5 + rng.uniform(0.5, 2.0))
+
+            # Direction perpendicular to edge
+            if start_pt[1] == end_pt[1]: # Horizontal edge (top or bottom)
+                pts.append((bx, by + displacement))
+            else: # Vertical edge (left or right)
+                pts.append((bx + displacement, by))
+        return pts
+
+    # 1. Build Pulp Boundary Polygon
+    top_pulp = fractal_edge((x0, y0), (x1, y0), "top" in edge_sides, is_pulp_layer=True, edge_side="top")
+    right_pulp = fractal_edge((x1, y0), (x1, y1), "right" in edge_sides, is_pulp_layer=True, edge_side="right")
+    bottom_pulp = fractal_edge((x1, y1), (x0, y1), "bottom" in edge_sides, is_pulp_layer=True, edge_side="bottom")
+    left_pulp = fractal_edge((x0, y1), (x0, y0), "left" in edge_sides, is_pulp_layer=True, edge_side="left")
+    pulp_poly = top_pulp + right_pulp + bottom_pulp + left_pulp
+    p_draw.polygon(pulp_poly, fill=255)
+
+    # 2. Build Face Paper Boundary Polygon (torn back slightly)
+    paper_mask = Image.new("L", (full_w, full_h), 0)
+    f_draw = ImageDraw.Draw(paper_mask)
+    top_paper = fractal_edge((x0, y0), (x1, y0), "top" in edge_sides, is_pulp_layer=False, edge_side="top")
+    right_paper = fractal_edge((x1, y0), (x1, y1), "right" in edge_sides, is_pulp_layer=False, edge_side="right")
+    bottom_paper = fractal_edge((x1, y1), (x0, y1), "bottom" in edge_sides, is_pulp_layer=False, edge_side="bottom")
+    left_paper = fractal_edge((x0, y1), (x0, y0), "left" in edge_sides, is_pulp_layer=False, edge_side="left")
+    paper_poly = top_paper + right_paper + bottom_paper + left_paper
+    f_draw.polygon(paper_poly, fill=255)
+
+    # Composite Pulp Layer and Face Paper
+    card = Image.new("RGBA", (full_w, full_h), (0, 0, 0, 0))
+    pulp_body = Image.new("RGBA", (full_w, full_h), (*pulp_color, 255))
+    pulp_body.putalpha(pulp_mask)
+
+    paper_body = Image.new("RGBA", (full_w, full_h), (*paper_color, 255))
+    paper_body.putalpha(paper_mask)
+
+    card = Image.alpha_composite(card, pulp_body)
+    card = Image.alpha_composite(card, paper_body)
+
+    # 3. Soft Ambient Drop Shadow onto final padded canvas
+    shadow_pad = 12
+    out_w, out_h = full_w + shadow_pad * 2, full_h + shadow_pad * 2
+
+    s_alpha = pulp_mask.point(lambda p: int(p * 0.38))
+    s_img = Image.new("RGBA", (full_w, full_h), (18, 14, 10, 0))
+    s_img.putalpha(s_alpha)
+
+    shadow_layer = Image.new("RGBA", (out_w, out_h), (0, 0, 0, 0))
+    shadow_layer.paste(s_img, (shadow_pad + 4, shadow_pad + 6), s_img)
+    shadow_layer = shadow_layer.filter(ImageFilter.GaussianBlur(6))
+
+    card_layer = Image.new("RGBA", (out_w, out_h), (0, 0, 0, 0))
+    card_layer.paste(card, (shadow_pad, shadow_pad))
+
+    return Image.alpha_composite(shadow_layer, card_layer)
+
+
+# -------------------------------------------------------------
 # 1. Dark Journal Notebook Canvas (with Binder Holes & Spine Crease)
 # -------------------------------------------------------------
 def make_notebook_canvas():

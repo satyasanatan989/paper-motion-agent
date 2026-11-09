@@ -15,12 +15,14 @@ try:
     from visual_engine.transitions import TransitionLibrary
     from visual_engine.typography import KineticTypography
     from visual_engine.hyperframes_primitives import HyperFramesPrimitives
+    from visual_engine.spring_physics import SpringSolver, SPRING_PRESETS
 except ImportError:
     from ..storyboard.generator import StoryboardPlan, ScenePlan
     from .camera import CameraController
     from .transitions import TransitionLibrary
     from .typography import KineticTypography
     from .hyperframes_primitives import HyperFramesPrimitives
+    from .spring_physics import SpringSolver, SPRING_PRESETS
 
 class DynamicSceneComposer:
     """Assembles full HTML/CSS/JS web stages tailored dynamically to any storyboard."""
@@ -414,6 +416,33 @@ class DynamicSceneComposer:
     def _generate_css(self, storyboard: StoryboardPlan) -> str:
         font_imports = KineticTypography.get_font_imports()
         transitions_css = TransitionLibrary.get_all_css()
+
+        spring_keyframes_css = "\n\n".join([
+            SpringSolver.generate_css_keyframes(
+                "springStampSlam",
+                SPRING_PRESETS["stamp_slam"],
+                property_template="transform: scale({v}) rotate(-3deg); opacity: {v}",
+                duration=0.60
+            ),
+            SpringSolver.generate_css_keyframes(
+                "springStickerPop",
+                SPRING_PRESETS["sticker_pop"],
+                property_template="transform: scale({v})",
+                duration=0.55
+            ),
+            SpringSolver.generate_css_keyframes(
+                "springTagSwing",
+                SPRING_PRESETS["hanging_swing"],
+                property_template="transform: rotate(calc(({v} - 1.0) * -16deg))",
+                duration=0.85
+            ),
+            SpringSolver.generate_css_keyframes(
+                "springHeadlinePunch",
+                SPRING_PRESETS["headline_punch"],
+                property_template="transform: translateY(calc({inv_v} * -45px)) scale({v}); opacity: {v}",
+                duration=0.50
+            ),
+        ])
 
         return f"""{font_imports}
 
@@ -825,9 +854,42 @@ html, body {{
   border-radius: 6px;
 }}
 
+/* Procedural Craft Accents */
+.craft-washi-tape {{
+  position: absolute;
+  width: 130px;
+  height: 32px;
+  background: rgba(232, 172, 44, 0.78);
+  background-image: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255, 255, 255, 0.22) 10px, rgba(255, 255, 255, 0.22) 20px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.45);
+  z-index: 22;
+  pointer-events: none;
+}}
+.craft-washi-tape.tape-tl {{ top: -14px; left: -18px; transform: rotate(-14deg); }}
+.craft-washi-tape.tape-tr {{ top: -14px; right: -18px; transform: rotate(12deg); }}
+
+.craft-rubber-stamp {{
+  position: absolute;
+  border: 4px solid var(--accent-burnt-orange);
+  border-radius: 50%;
+  color: var(--accent-burnt-orange);
+  font-family: 'Impact', sans-serif;
+  font-size: 22px;
+  letter-spacing: 0.15em;
+  padding: 18px 24px;
+  text-align: center;
+  text-transform: uppercase;
+  transform-origin: center center;
+  box-shadow: inset 0 0 10px rgba(255, 107, 0, 0.35);
+  animation: springStampSlam 0.65s forwards;
+  z-index: 25;
+}}
+
 {transitions_css}
 
 {HyperFramesPrimitives.get_hyperframes_css_rules()}
+
+{spring_keyframes_css}
 """
 
     def _generate_js(self, storyboard: StoryboardPlan) -> str:
@@ -865,6 +927,7 @@ html, body {{
 
         chapters_str = json.dumps(chapters_json, indent=4, ensure_ascii=False)
         cam_runtime = CameraController.generate_js_camera_runtime()
+        spring_runtime = SpringSolver.generate_js_spring_runtime()
 
         return f"""/**
  * PaperMotion Dynamic Timeline Driver & Frame-Accurate CDP Controller.
@@ -937,6 +1000,9 @@ html, body {{
 
   // 3. Camera System Runtime
   {cam_runtime}
+
+  // 3B. Analytical Damped Harmonic Oscillator Spring Physics Solver
+  {spring_runtime}
 
   // 4. Kinetic Subtitle Highlighter
   const captionBox = document.getElementById('caption-box');
@@ -1059,10 +1125,27 @@ html, body {{
       }}
     }}
 
+    // Dynamic Multi-plane Optical Parallax (Background 0.92, Stage 1.00, Rig 1.06)
+    if (parchmentCanvas) {{
+      const bgPx = cam.cx * 0.92;
+      const bgPy = cam.cy * 0.92;
+      const bgScale = 1.0 + (cam.zoom - 1.0) * 0.92;
+      parchmentCanvas.style.transform = `translate3d(${{bgPx.toFixed(2)}}px, ${{bgPy.toFixed(2)}}px, 0px) scale(${{bgScale.toFixed(4)}})`;
+    }}
+
+    const globalRig = document.querySelector('.global-paper-rig');
+    if (globalRig) {{
+      const fgPx = cam.cx * 1.06;
+      const fgPy = cam.cy * 1.06;
+      const fgScale = 1.0 + (cam.zoom - 1.0) * 1.06;
+      globalRig.style.transform = `translate3d(${{fgPx.toFixed(2)}}px, ${{fgPy.toFixed(2)}}px, 0px) scale(${{fgScale.toFixed(4)}})`;
+    }}
+
     if (activeSceneEl) {{
       const vStage = activeSceneEl.querySelector('.visual-stage');
       if (vStage) {{
-        vStage.style.transform = `translate3d(${{(cam.cx + stageJitter.jx).toFixed(2)}}px, ${{(cam.cy + stageJitter.jy).toFixed(2)}}px, ${{cam.cz}}px) rotate(${{stageJitter.jr.toFixed(2)}}deg) scale(${{cam.zoom}})`;
+        const totalTilt = (cam.tilt || 0) + stageJitter.jr;
+        vStage.style.transform = `translate3d(${{(cam.cx + stageJitter.jx).toFixed(2)}}px, ${{(cam.cy + stageJitter.jy).toFixed(2)}}px, ${{cam.cz}}px) rotate(${{totalTilt.toFixed(2)}}deg) scale(${{cam.zoom}})`;
       }}
 
       // Assemble-from-Empty Staggered Entrance & Paper Boil (gbro-collage-broll + pasteup)
@@ -1085,7 +1168,7 @@ html, body {{
 
         // Staggered piece entrance: Structure first -> Cutouts/cards -> Connectors -> Final hold
         const enterDelay = 0.08 + elIdx * 0.16;
-        const enterDur = 0.44;
+        const enterDur = 0.65;
         const pTime = relT - enterDelay;
 
         // Alternate entry origins: bottom, right, left, top
@@ -1100,15 +1183,14 @@ html, body {{
           el.style.translate = `${{offX}}px ${{offY}}px`;
           el.style.rotate = `${{offRot}}deg`;
         }} else if (pTime < enterDur) {{
-          // In-flight snap with easeOutBack (~8% physical cardboard overshoot)
+          // In-flight physical landing using analytical damped harmonic spring physics (with easeOutBack c1 = 1.70158 fallback)
           const p = pTime / enterDur;
           const c1 = 1.70158;
-          const c3 = c1 + 1;
-          const easeVal = 1 + c3 * Math.pow(p - 1, 3) + c1 * Math.pow(p - 1, 2);
+          const springVal = window.solveSpring ? window.solveSpring(220, 15, 1.0, pTime) : (1 + 2.70158 * Math.pow(p - 1, 3) + c1 * Math.pow(p - 1, 2));
 
-          const curX = offX * (1.0 - easeVal);
-          const curY = offY * (1.0 - easeVal);
-          const curRot = offRot * (1.0 - easeVal);
+          const curX = offX * (1.0 - springVal);
+          const curY = offY * (1.0 - springVal);
+          const curRot = offRot * (1.0 - springVal);
           const curOpacity = Math.min(1.0, p * 2.5);
 
           el.style.opacity = curOpacity.toFixed(2);
