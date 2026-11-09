@@ -13,4 +13,6 @@ Thumbs.db
 output/
 *.lock
 .vork-output.lock
+.coverage
+.pytest_cache/
 

@@ -138,6 +138,20 @@ class DynamicSceneComposer:
       </div>
     </div>
 
+    <!-- Editorial Halftone Texture Filter Library (gbro-collage-broll pattern) -->
+    <svg width="0" height="0" style="position:absolute;width:0;height:0;overflow:hidden;">
+      <defs>
+        <filter id="editorial-halftone" color-interpolation-filters="sRGB">
+          <feColorMatrix type="matrix" values="0.299 0.587 0.114 0 0  0.299 0.587 0.114 0 0  0.299 0.587 0.114 0 0  0 0 0 1 0"/>
+          <feComponentTransfer>
+            <feFuncR type="discrete" tableValues="0.08 0.96"/>
+            <feFuncG type="discrete" tableValues="0.08 0.94"/>
+            <feFuncB type="discrete" tableValues="0.08 0.90"/>
+          </feComponentTransfer>
+        </filter>
+      </defs>
+    </svg>
+
   </div>
 
   <script src="timeline.js"></script>
@@ -414,6 +428,14 @@ class DynamicSceneComposer:
   --accent-acid: #E53E3E;
   --paper-cutout: drop-shadow(0 14px 24px rgba(0, 0, 0, 0.65)) drop-shadow(0 3px 6px rgba(0, 0, 0, 0.45));
   --paper-cutout-sm: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.5));
+
+  /* Editorial Color Field Presets (pyang5166/gbro-collage-broll theory) */
+  --cf-burnt-orange: radial-gradient(circle at 50% 45%, #C2410C 0%, #7C2D12 60%, #431407 100%);
+  --cf-mustard-yellow: radial-gradient(circle at 50% 45%, #D97706 0%, #92400E 60%, #451A03 100%);
+  --cf-dark-purple: radial-gradient(circle at 50% 45%, #2E1065 0%, #1E1B4B 60%, #0F0A1E 100%);
+  --cf-teal-cyan: radial-gradient(circle at 50% 45%, #0F766E 0%, #115E59 60%, #042F2E 100%);
+  --cf-forest-green: radial-gradient(circle at 50% 45%, #14532D 0%, #052E16 60%, #02180B 100%);
+  --cf-charcoal-parchment: radial-gradient(circle at 50% 45%, #241D17 0%, #15110E 65%, #0B0907 100%);
 }}
 
 * {{
@@ -623,6 +645,13 @@ html, body {{
   will-change: translate, rotate;
 }}
 
+/* Assemble-from-Empty Staggered Papercraft Mechanics (gbro-collage-broll pattern) */
+.assemble-piece {{
+  transform-box: fill-box;
+  transform-origin: center center;
+  will-change: translate, rotate, opacity;
+}}
+
 /* Mechanical Data Widgets: Odometer */
 .odometer-widget {{
   position: absolute;
@@ -825,6 +854,8 @@ html, body {{
                     "jitter_deg": 0.45,
                     "seed": 42 + scene.chapter_num * 101
                 },
+                "colorField": getattr(scene, 'color_field', None) or "charcoal_parchment",
+                "assembleFromEmpty": getattr(scene, 'assemble_from_empty', True),
                 "camera": {
                     "movement": scene.camera.movement,
                     "zoomStart": scene.camera.zoom_start,
@@ -850,15 +881,9 @@ html, body {{
     const w = canvas.width;
     const h = canvas.height;
 
-    const grad = ctx.createRadialGradient(w / 2, h / 2, 200, w / 2, h / 2, 1100);
-    grad.addColorStop(0, '#2D221A');
-    grad.addColorStop(0.5, '#221913');
-    grad.addColorStop(0.85, '#19120D');
-    grad.addColorStop(1, '#0F0B08');
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, w, h);
+    ctx.clearRect(0, 0, w, h);
 
-    // Procedural organic speckles
+    // Procedural organic speckles (transparent overlay so CSS color fields shine through)
     const rng = (function (seed) {{
       return function () {{
         seed = (seed * 9301 + 49297) % 233280;
@@ -1016,21 +1041,92 @@ html, body {{
     const jitterDeg = cadence.jitter_deg != null ? cadence.jitter_deg : 0.45;
     const stageJitter = computePasteupJitter(seed, poseIndex, jitterPx, jitterDeg);
 
+    // Dynamic Color Field Canvas (pyang5166/gbro-collage-broll color field theory)
+    const parchmentCanvas = document.getElementById('parchment-canvas');
+    if (parchmentCanvas && currentChapter.colorField) {{
+      const cfMap = {{
+        'burnt_orange': 'radial-gradient(circle at 50% 45%, #C2410C 0%, #7C2D12 60%, #431407 100%)',
+        'mustard_yellow': 'radial-gradient(circle at 50% 45%, #D97706 0%, #92400E 60%, #451A03 100%)',
+        'dark_purple': 'radial-gradient(circle at 50% 45%, #2E1065 0%, #1E1B4B 60%, #0F0A1E 100%)',
+        'teal_cyan': 'radial-gradient(circle at 50% 45%, #0F766E 0%, #115E59 60%, #042F2E 100%)',
+        'forest_green': 'radial-gradient(circle at 50% 45%, #14532D 0%, #052E16 60%, #02180B 100%)',
+        'charcoal_parchment': 'radial-gradient(circle at 50% 45%, #241D17 0%, #15110E 65%, #0B0907 100%)'
+      }};
+      const targetBg = cfMap[currentChapter.colorField] || cfMap['charcoal_parchment'];
+      if (parchmentCanvas.dataset.colorField !== currentChapter.colorField) {{
+        parchmentCanvas.dataset.colorField = currentChapter.colorField;
+        parchmentCanvas.style.background = targetBg;
+      }}
+    }}
+
     if (activeSceneEl) {{
       const vStage = activeSceneEl.querySelector('.visual-stage');
       if (vStage) {{
         vStage.style.transform = `translate3d(${{(cam.cx + stageJitter.jx).toFixed(2)}}px, ${{(cam.cy + stageJitter.jy).toFixed(2)}}px, ${{cam.cz}}px) rotate(${{stageJitter.jr.toFixed(2)}}deg) scale(${{cam.zoom}})`;
       }}
 
-      // Discrete Paper Boil on Articulated Cutouts (tmoody1973/pasteup pattern)
-      if (cadence.boil) {{
-        const cutouts = activeSceneEl.querySelectorAll('.hazard-ribbon, .hanging-tag-widget, .meter-bar-widget, .odometer-widget, .vox-annotate-container, svg g, .brand-badge');
-        cutouts.forEach((el, elIdx) => {{
-          const elJitter = computePasteupJitter(seed + (elIdx + 1) * 37, poseIndex, jitterPx * 0.65, jitterDeg * 0.65);
-          el.style.translate = `${{elJitter.jx.toFixed(2)}}px ${{elJitter.jy.toFixed(2)}}px`;
-          el.style.rotate = `${{elJitter.jr.toFixed(2)}}deg`;
-        }});
-      }}
+      // Assemble-from-Empty Staggered Entrance & Paper Boil (gbro-collage-broll + pasteup)
+      const cutouts = activeSceneEl.querySelectorAll('.hazard-ribbon, .hanging-tag-widget, .meter-bar-widget, .odometer-widget, .vox-annotate-container, svg g, .brand-badge, .assemble-piece');
+      const assembleEnabled = currentChapter.assembleFromEmpty !== false;
+
+      cutouts.forEach((el, elIdx) => {{
+        if (!assembleEnabled) {{
+          if (cadence.boil) {{
+            const elJitter = computePasteupJitter(seed + (elIdx + 1) * 37, poseIndex, jitterPx * 0.65, jitterDeg * 0.65);
+            el.style.translate = `${{elJitter.jx.toFixed(2)}}px ${{elJitter.jy.toFixed(2)}}px`;
+            el.style.rotate = `${{elJitter.jr.toFixed(2)}}deg`;
+          }} else {{
+            el.style.translate = '0px 0px';
+            el.style.rotate = '0deg';
+          }}
+          el.style.opacity = '1';
+          return;
+        }}
+
+        // Staggered piece entrance: Structure first -> Cutouts/cards -> Connectors -> Final hold
+        const enterDelay = 0.08 + elIdx * 0.16;
+        const enterDur = 0.44;
+        const pTime = relT - enterDelay;
+
+        // Alternate entry origins: bottom, right, left, top
+        const enterFrom = elIdx % 4 === 0 ? 'bottom' : (elIdx % 4 === 1 ? 'right' : (elIdx % 4 === 2 ? 'left' : 'top'));
+        const offX = enterFrom === 'left' ? -320 : (enterFrom === 'right' ? 320 : 0);
+        const offY = enterFrom === 'top' ? -280 : (enterFrom === 'bottom' ? 360 : 0);
+        const offRot = enterFrom === 'left' ? -8.0 : (enterFrom === 'right' ? 8.0 : -3.5);
+
+        if (pTime <= 0) {{
+          // Off-screen before assemble step
+          el.style.opacity = '0';
+          el.style.translate = `${{offX}}px ${{offY}}px`;
+          el.style.rotate = `${{offRot}}deg`;
+        }} else if (pTime < enterDur) {{
+          // In-flight snap with easeOutBack (~8% physical cardboard overshoot)
+          const p = pTime / enterDur;
+          const c1 = 1.70158;
+          const c3 = c1 + 1;
+          const easeVal = 1 + c3 * Math.pow(p - 1, 3) + c1 * Math.pow(p - 1, 2);
+
+          const curX = offX * (1.0 - easeVal);
+          const curY = offY * (1.0 - easeVal);
+          const curRot = offRot * (1.0 - easeVal);
+          const curOpacity = Math.min(1.0, p * 2.5);
+
+          el.style.opacity = curOpacity.toFixed(2);
+          el.style.translate = `${{curX.toFixed(2)}}px ${{curY.toFixed(2)}}px`;
+          el.style.rotate = `${{curRot.toFixed(2)}}deg`;
+        }} else {{
+          // Landed and settled on the cardboard field: apply stop-motion paper boil
+          el.style.opacity = '1';
+          if (cadence.boil) {{
+            const elJitter = computePasteupJitter(seed + (elIdx + 1) * 37, poseIndex, jitterPx * 0.65, jitterDeg * 0.65);
+            el.style.translate = `${{elJitter.jx.toFixed(2)}}px ${{elJitter.jy.toFixed(2)}}px`;
+            el.style.rotate = `${{elJitter.jr.toFixed(2)}}deg`;
+          }} else {{
+            el.style.translate = '0px 0px';
+            el.style.rotate = '0deg';
+          }}
+        }}
+      }});
     }}
 
     // Continuous Kinetic Micro-Animations (Zero Static Holds)

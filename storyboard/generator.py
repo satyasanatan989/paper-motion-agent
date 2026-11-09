@@ -68,6 +68,8 @@ class ScenePlan:
     annotation: Optional[Dict[str, Any]] = None
     paper_transition: Optional[Dict[str, Any]] = None
     cadence: Optional[Dict[str, Any]] = None
+    color_field: Optional[str] = None
+    assemble_from_empty: bool = True
 
 @dataclass
 class StoryboardPlan:
@@ -232,6 +234,21 @@ class StoryboardGenerator:
                 "seed": 42 + ch_num * 101
             }
 
+            # Derive Color Field (gbro-collage-broll color field theory)
+            ch_color_field = getattr(ch, 'color_field', None)
+            if not ch_color_field:
+                cf_map = {
+                    1: "burnt_orange",     # Hook, labor, heat, urgency
+                    2: "mustard_yellow",   # Alert, regulation, warning
+                    3: "teal_cyan",        # Scientific test, biological lab
+                    4: "dark_purple",      # Gastric acid, legal rules
+                    5: "mustard_yellow",   # Flight board, data metrics
+                    6: "forest_green",     # Natural truth, healthy choice
+                }
+                ch_color_field = cf_map.get(ch_num, "charcoal_parchment")
+
+            ch_assemble_from_empty = getattr(ch, 'assemble_from_empty', True)
+
             scene = ScenePlan(
                 scene_id=f"scene_{ch_num:03d}",
                 chapter_num=ch_num,
@@ -252,7 +269,9 @@ class StoryboardGenerator:
                 widget=ch_widget,
                 annotation=ch_annotation,
                 paper_transition=ch_paper_transition,
-                cadence=ch_cadence
+                cadence=ch_cadence,
+                color_field=ch_color_field,
+                assemble_from_empty=ch_assemble_from_empty
             )
             scenes.append(scene)
 

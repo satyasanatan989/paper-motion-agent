@@ -65,6 +65,62 @@ def paperize_cutout(
     return blurred_shadow
 
 # -------------------------------------------------------------
+# 0B. Editorial Halftone Cardstock Screening (gbro-collage-broll pattern)
+# -------------------------------------------------------------
+def halftone_cutout(
+    image: Image.Image,
+    dot_size: int = 6,
+    contrast: float = 1.4,
+    paperize: bool = True
+) -> Image.Image:
+    """
+    Transforms photographic cutouts into authentic editorial B&W halftone prints
+    (inspired by pyang5166/gbro-collage-broll and classic Vox explainers).
+    1. Extracts alpha mask.
+    2. Converts RGB to high-contrast grayscale.
+    3. Simulates printed halftone dot matrix screening.
+    4. Optional cardboard paperization (cream keyline + physical drop shadow).
+    """
+    from PIL import ImageEnhance
+
+    if image.mode != "RGBA":
+        image = image.convert("RGBA")
+    w, h = image.size
+    alpha = image.split()[3]
+
+    # Convert RGB to high contrast grayscale
+    gray = image.convert("L")
+    gray = ImageEnhance.Contrast(gray).enhance(contrast)
+
+    # Grid coordinates
+    y_idx, x_idx = np.indices((h, w))
+    cx = (x_idx // dot_size) * dot_size + dot_size / 2.0
+    cy = (y_idx // dot_size) * dot_size + dot_size / 2.0
+    dist = np.sqrt((x_idx - cx)**2 + (y_idx - cy)**2)
+
+    # Downsample and nearest neighbor to get cell brightness
+    small_w = max(1, w // dot_size)
+    small_h = max(1, h // dot_size)
+    small_gray = gray.resize((small_w, small_h), Image.Resampling.BILINEAR)
+    cell_brightness = np.array(small_gray.resize((w, h), Image.Resampling.NEAREST), dtype=np.float32)
+
+    # Dot radius per cell: max_radius = dot_size * 0.68
+    dot_radius = (1.0 - cell_brightness / 255.0) * (dot_size * 0.68)
+    dot_mask = (dist <= dot_radius)
+
+    # Print ink on warm cream cardstock
+    halftone_rgb = np.zeros((h, w, 3), dtype=np.uint8)
+    halftone_rgb[:, :] = [244, 239, 230]  # #F4EFE6 warm cream
+    halftone_rgb[dot_mask] = [24, 20, 18]   # #181412 deep print ink
+
+    halftone_img = Image.fromarray(halftone_rgb).convert("RGBA")
+    halftone_img.putalpha(alpha)
+
+    if paperize:
+        return paperize_cutout(halftone_img)
+    return halftone_img
+
+# -------------------------------------------------------------
 # 1. Dark Journal Notebook Canvas (with Binder Holes & Spine Crease)
 # -------------------------------------------------------------
 def make_notebook_canvas():
